@@ -3,13 +3,31 @@
 {% block content %}
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+<script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+
 <section class="pricing-section" style="margin-top: 70px;">
     <div class="container">
         <div class="section-title text-center mb-5">
             <h2>Choose Your Plan</h2>
             <p>Get the best value for your document conversion needs</p>
         </div>
-        
+
+        <!-- Subscription Status Display -->
+        {% if subscription_status %}
+        <div class="subscription-status alert alert-{{ 'success' if subscription_status == 'premium' else 'warning' }}">
+            <i class="fas fa-check-circle"></i>
+            <span class="status-text">
+                {% if subscription_status == 'premium' %}
+                    You're a Premium Subscriber!
+                {% elif subscription_status == 'error' %}
+                    There was an issue with your subscription.
+                {% else %}
+                    You're currently on the {{ subscription_status }} plan.
+                {% endif %}
+            </span>
+        </div>
+        {% endif %}
+
         <!-- Pricing Toggle -->
         <div class="pricing-toggle text-center mb-5">
             <div class="btn-group" role="group">
@@ -36,7 +54,6 @@
                     </div>
                 </div>
             </div>
-            
             <div class="col-md-4 mb-4">
                 <div class="pricing-card featured">
                     <div class="card-header">
@@ -54,13 +71,17 @@
                             <li>Advanced formatting options</li>
                             <li>Multiple file formats</li>
                         </ul>
-                    {% if not subscription_status == 'premium' %}
-                          <button id="submitBtn" type="submit" class="cta-button">Choose Plan</button>
-                    {% endif %} 
+                        {% if subscription_status != 'premium' %}
+                        <button id="submitBtn" type="submit" class="cta-button">Choose Plan</button>
+                        {% else %}
+                        <div class="current-plan">
+                            <i class="fas fa-check-circle"></i>
+                            <span class="plan-text">Current Plan</span>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-            
             <div class="col-md-4 mb-4">
                 <div class="pricing-card">
                     <div class="card-header">
@@ -116,7 +137,7 @@
                         <tr>
                             <td>Priority Support</td>
                             <td>-</td>
-                             <td>-</td>
+                            <td>-</td>
                             <td><i class="fas fa-check"></i></td>
                         </tr>
                     </tbody>
@@ -131,43 +152,35 @@
 .pricing-section {
     padding: 60px 0;
 }
-
 .pricing-toggle {
     margin-bottom: 40px;
 }
-
 .pricing-toggle .btn-group {
     margin: 0 auto;
     width: 200px;
 }
-
 .pricing-toggle .btn {
     border-radius: 20px;
     padding: 10px 25px;
 }
-
 .pricing-card {
     border-radius: 10px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     transition: transform 0.3s ease;
 }
-
 .pricing-card:hover {
     transform: translateY(-10px);
 }
-
 .pricing-card.featured {
     border: 2px solid #2575fc;
 }
-
 .card-header {
     background: linear-gradient(45deg, #2575fc, #6a11cb);
     color: white;
     padding: 30px;
     text-align: center;
 }
-
 .card-header .badge {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 20px;
@@ -175,118 +188,140 @@
     font-size: 14px;
     margin-bottom: 15px;
 }
-
 .price {
     font-size: 48px;
     font-weight: 700;
     margin: 20px 0;
 }
-
 .currency {
     font-size: 24px;
 }
-
 .period {
     font-size: 18px;
     color: #fff;
 }
-
 .card-body {
     padding: 30px;
     background: white;
 }
-
 .features-list {
     list-style: none;
     padding: 0;
     margin: 0 0 30px 0;
 }
-
 .features-list li {
     padding: 10px 0;
     border-bottom: 1px solid #eee;
 }
-
 .features-table {
     width: 100%;
     border-collapse: collapse;
     margin: 30px 0;
 }
-
 .features-table th,
 .features-table td {
     padding: 15px;
     text-align: center;
     border-bottom: 1px solid #eee;
 }
-
 .features-table th {
     background: #f8f9fa;
     font-weight: 600;
 }
-
-.faq-item {
-    background: white;
-    border-radius: 10px;
-    padding: 25px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+.subscription-status {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
 }
-
-.faq-item h4 {
-    color: #2575fc;
-    margin-bottom: 15px;
+.subscription-status i {
+    margin-right: 10px;
+    font-size: 24px;
+}
+.current-plan {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+.current-plan i {
+    margin-right: 10px;
+    color: #28a745;
+}
+.current-plan .plan-text {
+    font-weight: 500;
+    color: #28a745;
 }
 
 @media (max-width: 768px) {
     .pricing-card {
         margin-bottom: 30px;
     }
-    
     .features-table {
         font-size: 14px;
     }
-    
     .price {
         font-size: 36px;
     }
 }
-
 @media (max-width: 576px) {
     .pricing-toggle .btn-group {
         width: 100%;
     }
-    
     .pricing-toggle .btn {
         width: 50%;
     }
 }
 </style>
-</div>
-</div>
-</section>
+
 <script>
-    console.log("Sanity check!");
-    // Get Stripe publishable key
-    fetch("/config")
-    .then((result) => { return result.json(); })
-    .then((data) => {
+console.log("Sanity check!");
+// Get Stripe publishable key
+fetch("/config")
+.then((result) => { return result.json(); })
+.then((data) => {
     // Initialize Stripe.js
     const stripe = Stripe(data.publicKey);
-
+    
     // Event handler
-    document.querySelector("#submitBtn").addEventListener("click", () => {
-        // Get Checkout Session ID
-        fetch("/create-checkout-session")
-        .then((result) => { return result.json(); })
-        .then((data) => {
-        console.log(data);
-        // Redirect to Stripe Checkout
-        return stripe.redirectToCheckout({sessionId: data.sessionId})
-        })
-        .then((res) => {
-        console.log(res);
-        });
+    document.querySelector("#submitBtn")?.addEventListener("click", async () => {
+        try {
+            // Get Checkout Session ID
+            const response = await fetch("/create-checkout-session", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: "{{ current_user_id }}",
+                    price_id: "{{ premium_price_id }}"
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Redirect to Stripe Checkout
+                const result = await stripe.redirectToCheckout({
+                    sessionId: data.sessionId
+                });
+                
+                if (result.error) {
+                    // Handle redirect errors
+                    console.error('Error:', result.error);
+                    throw new Error(result.error.message);
+                }
+            } else {
+                throw new Error(data.error || 'Failed to create Checkout Session');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert(`Error: ${error.message}`);
+        }
     });
-    });
+});
 </script>
 {% endblock %}
