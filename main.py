@@ -438,6 +438,7 @@ def register():
                 'active': False,
                 'subscription': {
                     'type': create_free_subscription(),
+                    'status':'free',
                     'startDate': datetime.now().timestamp(),
                     'endDate': add_days_to_timestamp(datetime.now().timestamp(), 30),
                     'isActive': True
