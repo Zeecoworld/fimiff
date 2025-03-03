@@ -579,9 +579,6 @@ def success():
         # Get user data from session
         email = session.get('emailVerified')
         user_id = session.get('user_id')
-        
-        if not email or not user_id:
-            return redirect(url_for('home'))
             
         # Get Stripe session ID from URL params
         session_id = request.args.get('session_id')
@@ -603,9 +600,6 @@ def success():
         # Update user document in Firestore
         user_ref = db.collection('users').document(user_id)
         user_doc = user_ref.get()
-        
-        if not user_doc.exists:
-            return redirect(url_for('home'))
             
         # Create premium subscription data
         premium_subscription = {
@@ -735,7 +729,7 @@ def dashboard():
             'lastName': user_data['lastName'],
             'email': user_data['email'],
             'subscription': {
-                'type': user_data['subscription']['type'],
+                'type': user_data['subscription']['plan'],
                 'startDate': datetime.fromtimestamp(user_data['subscription']['startDate']).strftime('%Y-%m-%d'),
                 'endDate': datetime.fromtimestamp(user_data['subscription']['endDate']).strftime('%Y-%m-%d') if user_data['subscription']['endDate'] else 'Active',
                 'isActive': user_data['subscription']['isActive']
