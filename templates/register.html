@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Bank Statement Converter - Register{% endblock %}
+{% block content %}
+<style>
+.notifications-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.flash {
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out;
+}
+.flash.success {
+    background-color: #96faad;
+    color: #1c7530;
+    border-left: 4px solid #2575fc;
+}
+.flash.error {
+    background-color: #ffa7ae;
+    color: #a02a36;
+    border-left: 4px solid #dc3545;
+}
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+</style>
+<section class="register-section" style="margin-top: 70px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="register-card">
+                    <div class="section-title text-center mb-4">
+                        <h2>Create Your Free Account</h2>
+                        <p>Get access to 5 daily conversions and enhanced formatting options</p>
+                    </div>
+                    <form class="registration-form" action="" method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="notifications-container">
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                            {% for category, message in messages %}
+                            <div class="flash {{ category }}">{{ message }}</div>
+                            {% endfor %}
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.firstName.label(class_='form-label') }}
+                                {{ form.firstName(class_='form-control',
+                                               placeholder=form.firstName.description,
+                                               data_validate=form.firstName.render_kw.get('data-validate')) }}
+                                {% for error in form.firstName.errors %}
+                                <span class="error">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.lastName.label(class_='form-label') }}
+                                {{ form.lastName(class_='form-control',
+                                              placeholder=form.lastName.description) }}
+                                {% for error in form.lastName.errors %}
+                                <span class="error">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.email.label(class_='form-label') }}
+                            {{ form.email(class_='form-control',
+                                       type='email',
+                                       placeholder=form.email.description) }}
+                            <div class="form-text">We'll never share your email with anyone else.</div>
+                            {% for error in form.email.errors %}
+                            <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.password.label(class_='form-label') }}
+                            {{ form.password(class_='form-control',
+                                          data_validate=form.password.render_kw.get('data-validate')) }}
+                            {% for error in form.password.errors %}
+                            <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.confirmPassword.label(class_='form-label') }}
+                            {{ form.confirmPassword(class_='form-control') }}
+                            {% for error in form.confirmPassword.errors %}
+                            <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4 form-check">
+                            {{ form.termsCheck(class_='form-check-input',
+                                             data_validate=form.termsCheck.render_kw.get('data-validate')) }}
+                            {{ form.termsCheck.label(class_='form-check-label') }}
+                            {% for error in form.termsCheck.errors %}
+                            <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="cta-button">Create Account</button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-4">
+                        <p>Already have an account? <a href="{{ url_for('signin') }}" class="login-link">Log In</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Rest of your template sections (benefits, testimonials, FAQ) remain the same -->
+</div>
+</div>
+</section>
+{% endblock %}

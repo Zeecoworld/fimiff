@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% block title %}Bank Statement Converter - Pricing Plans{% endblock %}
+{% block content %}
+<script src="https://js.stripe.com/v3/"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+<section class="pricing-section" style="margin-top: 70px;">
+    <div class="container">
+        <div class="section-title text-center mb-5">
+            <h2>Choose Your Plan</h2>
+            <p>Get the best value for your document conversion needs</p>
+        </div>
+        
+        <!-- Pricing Toggle -->
+        <div class="pricing-toggle text-center mb-5">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary active" data-toggle="tab" data-target="#monthly">Monthly</button>
+                <button type="button" class="btn btn-outline-primary" data-toggle="tab" data-target="#annual">Annual</button>
+            </div>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="row justify-content-center">
+            <div class="col-md-4 mb-4">
+                <div class="pricing-card">
+                    <div class="card-header">
+                        <h3>Basic</h3>
+                        <div class="price">
+                            <span class="amount">Free</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <ul class="features-list">
+                            <li>1 pages per day</li>
+                            <li>PDF conversion only</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="pricing-card featured">
+                    <div class="card-header">
+                        <div class="badge">Most Popular</div>
+                        <h3>Premium</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount">29</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <ul class="features-list">
+                            <li>50 pages per day</li>
+                            <li>Advanced formatting options</li>
+                            <li>Multiple file formats</li>
+                        </ul>
+                        <button id="submitBtn" type="submit" class="cta-button">Choose Plan</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="pricing-card">
+                    <div class="card-header">
+                        <h3>Enterprise</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="features-list">
+                            <li>Unlimited pages</li>
+                            <li>Custom formatting</li>
+                            <li>24/7 support</li>
+                            <li>All premium features</li>
+                            <li>Custom integration</li>
+                        </ul>
+                        <button type="button" class="cta-button">Contact Support</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section mt-5">
+    <div class="container">
+        <div class="section-title text-center mb-5">
+            <h2>What You Get</h2>
+            <p>Compare features across all plans</p>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <table class="features-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Basic</th>
+                            <th>Premium</th>
+                            <th>Enterprise</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>PDF Conversion</td>
+                            <td><i class="fas fa-check"></i></td>
+                            <td><i class="fas fa-check"></i></td>
+                            <td><i class="fas fa-check"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Multiple Formats</td>
+                            <td>-</td>
+                            <td><i class="fas fa-check"></i></td>
+                            <td><i class="fas fa-check"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Priority Support</td>
+                            <td>-</td>
+                             <td>-</td>
+                            <td><i class="fas fa-check"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Add to your existing CSS file */
+.pricing-section {
+    padding: 60px 0;
+}
+
+.pricing-toggle {
+    margin-bottom: 40px;
+}
+
+.pricing-toggle .btn-group {
+    margin: 0 auto;
+    width: 200px;
+}
+
+.pricing-toggle .btn {
+    border-radius: 20px;
+    padding: 10px 25px;
+}
+
+.pricing-card {
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.pricing-card:hover {
+    transform: translateY(-10px);
+}
+
+.pricing-card.featured {
+    border: 2px solid #2575fc;
+}
+
+.card-header {
+    background: linear-gradient(45deg, #2575fc, #6a11cb);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+.card-header .badge {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.price {
+    font-size: 48px;
+    font-weight: 700;
+    margin: 20px 0;
+}
+
+.currency {
+    font-size: 24px;
+}
+
+.period {
+    font-size: 18px;
+    color: #fff;
+}
+
+.card-body {
+    padding: 30px;
+    background: white;
+}
+
+.features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 30px 0;
+}
+
+.features-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.features-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 30px 0;
+}
+
+.features-table th,
+.features-table td {
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+.features-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.faq-item {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.faq-item h4 {
+    color: #2575fc;
+    margin-bottom: 15px;
+}
+
+@media (max-width: 768px) {
+    .pricing-card {
+        margin-bottom: 30px;
+    }
+    
+    .features-table {
+        font-size: 14px;
+    }
+    
+    .price {
+        font-size: 36px;
+    }
+}
+
+@media (max-width: 576px) {
+    .pricing-toggle .btn-group {
+        width: 100%;
+    }
+    
+    .pricing-toggle .btn {
+        width: 50%;
+    }
+}
+</style>
+</div>
+</div>
+</section>
+<script>
+    console.log("Sanity check!");
+    // Get Stripe publishable key
+    fetch("/config")
+    .then((result) => { return result.json(); })
+    .then((data) => {
+    // Initialize Stripe.js
+    const stripe = Stripe(data.publicKey);
+
+    // Event handler
+    document.querySelector("#submitBtn").addEventListener("click", () => {
+        // Get Checkout Session ID
+        fetch("/create-checkout-session")
+        .then((result) => { return result.json(); })
+        .then((data) => {
+        console.log(data);
+        // Redirect to Stripe Checkout
+        return stripe.redirectToCheckout({sessionId: data.sessionId})
+        })
+        .then((res) => {
+        console.log(res);
+        });
+    });
+    });
+</script>
+{% endblock %}

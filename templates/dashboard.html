@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+.dashboard-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.user-info, .subscription-info {
+    background: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+p {
+    margin: 10px 0;
+    color: #666;
+}
+</style>
+<div class="dashboard-container">
+    <h1>Dashboard</h1>
+    
+    <div class="user-info">
+        <h2>Profile Information</h2>
+        <p>First Name: {{ user_data.firstName }}</p>
+        <p>Last Name: {{ user_data.lastName }}</p>
+        <p>Email: {{ user_data.email }}</p>
+    </div>
+
+    <div class="subscription-info">
+        <h2>Subscription Details</h2>
+        <p>Type: {{ user_data.subscription.type }}</p>
+        <p>Start Date: {{ user_data.subscription.startDate }}</p>
+        <p>End Date: {{ user_data.subscription.endDate }}</p>
+        <p>Status: {% if user_data.subscription.isActive %}Active{% else %}Inactive{% endif %}</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}Bank Statement Converter - Sign In{% endblock %}
+{% block content %}
+<style>
+.notifications-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.flash {
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out;
+}
+.flash.success {
+    background-color: #96faad;
+    color: #1c7530;
+    border-left: 4px solid #2575fc;
+}
+.flash.error {
+    background-color: #ffa7ae;
+    color: #a02a36;
+    border-left: 4px solid #dc3545;
+}
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+</style>
+<section class="login-section" style="margin-top: 70px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="login-card">
+                    <div class="section-title text-center mb-4">
+                        <h2>Sign In to Your Account</h2>
+                        <p>Access your conversions and settings</p>
+                    </div>
+                    <form class="login-form" action="" method="post">
+                        {{ form.hidden_tag() }}  <!-- CSRF protection -->
+                        
+                        <div class="notifications-container">
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                            {% for category, message in messages %}
+                            <div class="flash {{ category }}">{{ message }}</div>
+                            {% endfor %}
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            {{ form.email(class_='form-control',
+                                       placeholder='Enter email address') }}
+                            {% for error in form.email.errors %}
+                            <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            {{ form.password(class_='form-control') }}
+                            {% for error in form.password.errors %}
+                            <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="form-check">
+                                    {{ form.remember_me(class_='form-check-input') }}
+                                    <label class="form-check-label" for="remember_me">Remember me</label>
+                                </div>
+                                <a href="#" class="login-link">Forgot Password?</a>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="cta-button">Sign In</button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-4">
+                        <p>Don't have an account? <a href="{{ url_for('register') }}" class="login-link">Sign Up</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Benefits Section -->
+<section class="benefits-section mt-5">
+    <div class="row mt-3">
+        <div class="col-md-4 text-center mb-3">
+            <div class="feature-icon">
+                <i class="fas fa-lock fa-2x"></i>
+            </div>
+            <p>Secure access to your account</p>
+        </div>
+        <div class="col-md-4 text-center mb-3">
+            <div class="feature-icon">
+                <i class="fas fa-history fa-2x"></i>
+            </div>
+            <p>View your conversion history</p>
+        </div>
+        <div class="col-md-4 text-center mb-3">
+            <div class="feature-icon">
+                <i class="fas fa-cog fa-2x"></i>
+            </div>
+            <p>Manage your settings</p>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonial Section -->
+<section class="testimonial-section">
+    <div class="container">
+        <div class="section-title">
+            <h2>Secure Login Features</h2>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"The two-factor authentication gives me peace of mind when accessing my financial documents."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <p>- Sarah T., Accountant</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"I can access my account from any device securely with their responsive design."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <p>- Michael R., Small Business Owner</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"The remember me feature saves me time while maintaining security."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <p>- Anna K., Financial Advisor</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section">
+    <div class="container">
+        <div class="section-title">
+            <h2>Sign In Help</h2>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="faq-item">
+                    <h4>Forgot your password?</h4>
+                    <p>Click the "Forgot Password" link below the password field to reset your password.</p>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="faq-item">
+                    <h4>Account locked out?</h4>
+                    <p>Try signing in again after a few minutes. Contact support if issues persist.</p>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="faq-item">
+                    <h4>Using a new device?</h4>
+                    <p>You may need to verify your identity through email when signing in from a new device.</p>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="faq-item">
+                    <h4>Remember me not working?</h4>
+                    <p>Clear your browser cache and cookies, then try signing in again.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.login-link {
+    color: #6a11cb;
+    font-weight: 600;
+    text-decoration: none;
+}
+.login-link:hover {
+    text-decoration: underline;
+}
+</style>
+</div>
+</div>
+</section>
+{% endblock %}

@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bank Statement Converter{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #7C4DFF;
+            --primary-dark: #5E35B1;
+            --primary-light: #B39DDB;
+            --accent: #FFD54F;
+            --light-bg: #F5F0FF;
+            --card-border: #E0E0E0;
+            --text-dark: #333333;
+            --text-light: #757575;
+        }
+        
+        body {
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-dark);
+            background-color: #FAFAFA;
+        }
+        
+        .navbar {
+            background-color: white !important;
+            box-shadow: 0 2px 10px rgba(124, 77, 255, 0.1);
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            color: var(--primary) !important;
+        }
+        
+        .navbar-brand img {
+            margin-right: 10px;
+        }
+        
+        .nav-link {
+            color: var(--text-dark) !important;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary) !important;
+        }
+        
+        .hero-section {
+            padding: 80px 0 60px;
+            text-align: center;
+            background: linear-gradient(135deg, #F5F0FF 0%, #ffffff 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: "";
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background-color: rgba(124, 77, 255, 0.05);
+            z-index: 0;
+        }
+        
+        .hero-section::after {
+            content: "";
+            position: absolute;
+            bottom: -100px;
+            left: -100px;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background-color: rgba(124, 77, 255, 0.05);
+            z-index: 0;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-section h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary-dark);
+            line-height: 1.2;
+        }
+        
+        .hero-section p {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin-bottom: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cta-button {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 35px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(124, 77, 255, 0.3);
+        }
+        
+        .cta-button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(124, 77, 255, 0.4);
+            color: white;
+        }
+        
+        .features-section {
+            padding: 80px 0;
+            background-color: white;
+            position: relative;
+        }
+        
+        .features-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(to bottom, var(--light-bg), white);
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+        
+        .section-title h2 {
+            font-weight: 700;
+            color: var(--primary-dark);
+            display: inline-block;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .section-title h2::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 3px;
+            background-color: var(--accent);
+            border-radius: 2px;
+        }
+        
+        .feature-card {
+            text-align: center;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            background-color: white;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            height: 100%;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(124, 77, 255, 0.1);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: var(--light-bg);
+            color: var(--primary);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover .feature-icon {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 5px 15px rgba(124, 77, 255, 0.3);
+        }
+        
+        .feature-card h3 {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+        }
+        
+        .feature-card p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .pricing-section {
+            padding: 80px 0;
+            background-color: var(--light-bg);
+            position: relative;
+        }
+        
+        .pricing-card {
+            border-radius: 15px;
+            padding: 40px 30px;
+            height: 100%;
+            background-color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(124, 77, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pricing-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(to right, var(--primary-light), var(--primary));
+        }
+        
+        .pricing-card:hover {
+            box-shadow: 0 15px 30px rgba(124, 77, 255, 0.15);
+            transform: translateY(-10px);
+        }
+        
+        .pricing-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary-dark);
+        }
+        
+        .pricing-description {
+            color: var(--text-light);
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+        
+        .pricing-feature {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .pricing-feature i {
+            color: var(--primary);
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .pricing-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 30px 0 20px;
+            color: var(--primary-dark);
+        }
+        
+        .register-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            position: relative;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .register-link::after {
+            content: "";
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary);
+            transition: all 0.3s ease;
+        }
+        
+        .register-link:hover {
+            color: var(--primary-dark);
+        }
+        
+        .register-link:hover::after {
+            width: 100%;
+        }
+        
+        .contact-section {
+            padding: 50px 0;
+            background: linear-gradient(135deg, #7C4DFF 0%, #5E35B1 100%);
+            margin: 80px 0;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(124, 77, 255, 0.2);
+        }
+        
+        .contact-section h2 {
+            font-weight: 700;
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 15px;
+        }
+        
+        .contact-section h2::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background-color: var(--accent);
+            border-radius: 2px;
+        }
+        
+        .contact-button {
+            background-color: white;
+            color: var(--primary-dark);
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .contact-button:hover {
+            background-color: var(--accent);
+            color: var(--text-dark);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-3px);
+        }
+        
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid rgba(124, 77, 255, 0.1);
+            background-color: white;
+        }
+        
+        .footer-links a {
+            color: var(--text-light);
+            margin-left: 20px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+        
+        .conversion-area {
+            background-color: white;
+            padding: 60px 0;
+            border-radius: 15px;
+            margin: 40px 0;
+            box-shadow: 0 10px 30px rgba(124, 77, 255, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Add chat widget styling */
+        .chat-widget {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #7C4DFF 0%, #5E35B1 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 5px 15px rgba(124, 77, 255, 0.3);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .chat-widget:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 8px 25px rgba(124, 77, 255, 0.4);
+        }
+        
+        /* Floating elements for visual interest */
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(124, 77, 255, 0.05);
+            z-index: 0;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(10deg);
+            }
+        }
+        
+        .fadeInUp {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+        
+        .feature-card, .pricing-card {
+            opacity: 0;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('home') }}">
+            <img src="/api/placeholder/40/40" width="40" height="40" alt="Logo">
+            BANK STATEMENT CONVERTER
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if 'user_id' in session %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('pricing') }}">Pricing</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('pricing') }}">Pricing</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('signin') }}">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                </li>
+                {% endif %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        English
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">Arabic</a></li>
+                        <li><a class="dropdown-item" href="#">Chinese (Mandarin)</a></li>
+                        <li><a class="dropdown-item" href="#">French</a></li>
+                        <li><a class="dropdown-item" href="#">German</a></li>
+                        <li><a class="dropdown-item" href="#">Hindi</a></li>
+                        <li><a class="dropdown-item" href="#">Italian</a></li>
+                        <li><a class="dropdown-item" href="#">Japanese</a></li>
+                        <li><a class="dropdown-item" href="#">Portuguese</a></li>
+                        <li><a class="dropdown-item" href="#">Spanish</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+    <!-- Main Content -->
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Copyright © 2025 Bank Statement Converter Ltd.</p>
+                </div>
+                <div class="col-md-6 text-end footer-links">
+                    <a href="#">About</a>
+                    <a href="#">Terms</a>
+                    <a href="#">Privacy</a>
+                    <a href="#">Blog</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Chat Widget -->
+    <div class="chat-widget">
+        <i class="fas fa-comment"></i>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Chat widget functionality
+        const chatWidget = document.querySelector('.chat-widget');
+        chatWidget.addEventListener('click', () => {
+            alert('Chat support is coming soon!');
+        });
+        
+        // Add animation to pricing cards on scroll
+        const animateOnScroll = (elements, animationClass) => {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.classList.add(animationClass);
+                        }, 100 * Array.from(elements).indexOf(entry.target));
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+            
+            elements.forEach(el => {
+                observer.observe(el);
+            });
+        };
+        
+        // Add floating animated elements
+        const addFloatingElements = () => {
+            const sections = document.querySelectorAll('.hero-section, .features-section, .pricing-section');
+            
+            sections.forEach(section => {
+                for (let i = 0; i < 3; i++) {
+                    const size = Math.floor(Math.random() * 100) + 50;
+                    const shape = document.createElement('div');
+                    shape.classList.add('floating-shape');
+                    shape.style.width = size + 'px';
+                    shape.style.height = size + 'px';
+                    shape.style.left = Math.floor(Math.random() * 100) + '%';
+                    shape.style.top = Math.floor(Math.random() * 100) + '%';
+                    shape.style.opacity = Math.random() * 0.1 + 0.05;
+                    shape.style.animation = `float ${Math.floor(Math.random() * 10) + 15}s infinite ease-in-out`;
+                    
+                    section.appendChild(shape);
+                }
+            });
+        };
+        
+        // Initialize animations after page load
+        window.addEventListener('load', () => {
+            addFloatingElements();
+            animateOnScroll(document.querySelectorAll('.feature-card'), 'fadeInUp');
+            animateOnScroll(document.querySelectorAll('.pricing-card'), 'fadeInUp');
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
