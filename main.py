@@ -699,7 +699,7 @@ def stripe_webhook():
 
 @app.route('/cancel/', methods=['GET'])
 def cancel():
-    return jsonify(message="Transaction was unsuccessfully"), 200
+     return redirect(url_for('dashboard'))
 
 
 
