@@ -439,7 +439,7 @@ def register():
                 'verificationToken': verification_token,
                 'verificationExpires': 24,
                 'active': False,
-                'subscription': create_free_subscription()
+                'subscription': create_free_subscription(),
                 'conversions': {
                     'remaining_conversions': 1,  # Default number of conversions
                     'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),  # Resets monthly
