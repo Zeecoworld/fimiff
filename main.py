@@ -97,6 +97,7 @@ csrf = CSRFProtect(app)
 
 
 
+
 app.config.update(
     #Mail-server
     MAIL_SERVER=os.getenv('MAIL_SERVER'),
@@ -118,6 +119,8 @@ app.config.update(
     SESSION_COOKIE_SAMESITE='Lax',
     PERMANENT_SESSION_LIFETIME=timedelta(hours=1)
 )
+
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
 def require_auth(f):
     @wraps(f)
