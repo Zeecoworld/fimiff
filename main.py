@@ -730,7 +730,7 @@ def dashboard():
             'email': user_data['email'],
             'subscription': {
                 'type': user_data['subscription']['plan'],
-                'startDate': datetime.fromtimestamp(user_data['subscription']['created_at']).strftime('%Y-%m-%d'),
+                'startDate': datetime.fromtimestamp(user_data['subscription']['startDate']).strftime('%Y-%m-%d'),
                 'endDate': datetime.fromtimestamp(user_data['subscription']['endDate']).strftime('%Y-%m-%d') if user_data['subscription']['endDate'] else 'Active',
                 'isActive': user_data['subscription']['isActive']
             }
