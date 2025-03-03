@@ -771,8 +771,58 @@ def contact():
 
 @app.route('/privacy', methods=['GET'])
 def privacy():
-    """Endpoint that renders an HTML template."""
-    return render_template('privacy.html')
+    # First validate session requirements
+    if 'emailVerified' not in session or 'user_id' not in session or not session['emailVerified']:
+        return redirect(url_for('home'))
+
+    try:
+        # Get user data from Firestore
+        user_ref = db.collection('users').document(session['user_id'])
+        user_doc = user_ref.get()
+        
+        if not user_doc.exists:
+            session.clear()
+            return redirect(url_for('home'))
+            
+        user_data = user_doc.to_dict()
+        
+        # Determine subscription handling based on user's subscription status
+        subscription_status = user_data.get('subscription', {}).get('status')
+        stripe_subscription_id = user_data.get('subscription', {}).get('stripe_subscription_id')
+        
+        # For premium users, verify subscription status with Stripe
+        if subscription_status == 'premium':
+            try:
+                # Verify subscription is still active in Stripe
+                subscription = stripe.Subscription.retrieve(stripe_subscription_id)
+                
+                # Update Firestore with latest subscription status
+                if subscription.status != subscription_status:
+                    user_ref.set({
+                        'subscription': {
+                            'status': subscription.status,
+                            'plan': subscription.plan.id
+                        }
+                    }, merge=True)
+                    
+                subscription_status = subscription.status
+                
+            except stripe.error.StripeError as e:
+                print(f"Stripe error checking subscription: {str(e)}")
+                # Log the error but continue with cached status
+                subscription_status = 'error'
+        
+        # Render template with updated subscription status
+        return render_template(
+            'pricing.html',
+            plan=user_data.get('subscription', {}).get('plan'),
+            subscription_status=subscription_status
+        )
+        
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        session.clear()
+        return redirect(url_for('home'))
 
 
 if __name__ == '__main__':
