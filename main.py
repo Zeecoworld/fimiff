@@ -754,25 +754,6 @@ def logout():
 
 @app.route('/pricing', methods=['GET'])
 def pricing():
-    """Endpoint that renders an HTML template."""
-    return render_template('pricing.html')
-
-
-@app.route('/about', methods=['GET'])
-def about():
-    """Endpoint that renders an HTML template."""
-    return render_template('about.html')
-
-
-@app.route('/contact', methods=['GET'])
-def contact():
-    """Endpoint that renders an HTML template."""
-    return render_template('contact.html')
-
-
-@app.route('/privacy', methods=['GET'])
-def privacy():
-    # First validate session requirements
     if 'emailVerified' not in session or 'user_id' not in session or not session['emailVerified']:
         return redirect(url_for('home'))
 
@@ -822,6 +803,23 @@ def privacy():
     except Exception as e:
         session.clear()
         return redirect(url_for('home'))
+
+
+@app.route('/about', methods=['GET'])
+def about():
+    """Endpoint that renders an HTML template."""
+    return render_template('about.html')
+
+
+@app.route('/contact', methods=['GET'])
+def contact():
+    """Endpoint that renders an HTML template."""
+    return render_template('contact.html')
+
+
+@app.route('/privacy', methods=['GET'])
+def privacy():
+    return render_template('privacy.html')
 
 
 if __name__ == '__main__':
