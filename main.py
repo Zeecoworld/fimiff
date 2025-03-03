@@ -547,72 +547,26 @@ def get_publishable_key():
     return jsonify(stripe_config)
 
 
-@app.route('/create-checkout-session', methods=['POST'])
+@app.route('/create-checkout-session/', methods=['GET'])
 def create_checkout_session():
-    domain_url = os.getenv("DOMAIN_NAME")+'/'
-    if not domain_url:
-        raise ValueError("DOMAIN_NAME environment variable is required")
-
+    domain_url = os.getenv("DOMAIN_NAME")+'/'  # Flask runs on port 5000 by default or custom domain???
     try:
-        data = request.json
-        if not data:
-            return jsonify({'error': 'Request body is missing'}), 400
-        
-        user_id = data.get('user_id')
-        price_id = data.get('price_id', os.getenv("STRIPE_PRICE_ID"))
-        
-        # Validate required parameters
-        if not user_id:
-            return jsonify({'error': 'User ID is required'}), 400
-        
-        # Create Checkout Session
         checkout_session = stripe.checkout.Session.create(
-            client_reference_id=user_id,
-            success_url=f"{domain_url}/success",
-            cancel_url=f"{domain_url}/cancel",
+            client_reference_id=request.args.get('user_id'),  # Get user_id from the query string
+            success_url=domain_url + 'success?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=domain_url + 'cancel/',
             payment_method_types=['card'],
             mode='subscription',
             line_items=[
                 {
-                    'price': price_id,
+                    'price': os.getenv("STRIPE_PRICE_ID"),  #change this for new price_id for live???
                     'quantity': 1,
                 }
             ]
         )
-        
-        return jsonify({'sessionId': checkout_session.id})
-        
-    except stripe.error.CardError as e:
-        return jsonify({
-            'error': {
-                'message': str(e.user_message),
-                'type': 'card_error'
-            }
-        }), 400
-        
-    except stripe.error.RateLimitError as e:
-        return jsonify({
-            'error': {
-                'message': 'Too many requests made to Stripe.',
-                'type': 'rate_limit_error'
-            }
-        }), 429
-        
-    except stripe.error.InvalidRequestError as e:
-        return jsonify({
-            'error': {
-                'message': str(e.user_message),
-                'type': 'invalid_request_error'
-            }
-        }), 400
-        
+        return jsonify({'sessionId': checkout_session['id']})
     except Exception as e:
-        return jsonify({
-            'error': {
-                'message': str(e),
-                'type': 'server_error'
-            }
-        }), 500
+        return jsonify({'error': str(e)}), 400
     
 
 @app.route("/success")
@@ -855,7 +809,6 @@ def privacy():
                 subscription_status = subscription.status
                 
             except stripe.error.StripeError as e:
-                print(f"Stripe error checking subscription: {str(e)}")
                 # Log the error but continue with cached status
                 subscription_status = 'error'
         
@@ -867,7 +820,6 @@ def privacy():
         )
         
     except Exception as e:
-        print(f"Unexpected error: {str(e)}")
         session.clear()
         return redirect(url_for('home'))
 
