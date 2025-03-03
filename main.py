@@ -620,8 +620,8 @@ def success():
        }
         
         # Update user document
-        user_ref.update({
-            'subscription': premium_subscription,
+        user_ref.get('conversions', {
+            'type': premium_subscription,
             'last_updated': firestore.SERVER_TIMESTAMP
         })
         
