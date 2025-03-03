@@ -507,6 +507,7 @@ def signin():
                         # Store user data in session
                         session['user_id'] = user_doc.id
                         session['first_name'] = user_data.get('firstName')
+                        session['emailVerified'] = user_data.get('emailVerified')
                         
                         # Update last login timestamp
                         user_ref = db.collection('users').document(user_doc.id)
