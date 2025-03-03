@@ -577,13 +577,13 @@ def create_checkout_session():
 def success():
     try:
         # Get user data from session
-        email = session.get('emailVerified')
+        emailVerified = session.get('emailVerified')
         user_id = session.get('user_id')
             
         # Get Stripe session ID from URL params
         session_id = request.args.get('session_id')
         if not session_id:
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('home'))
             
         # Retrieve the Stripe session to get subscription info
         stripe_session = stripe.checkout.Session.retrieve(session_id)
@@ -635,6 +635,8 @@ def success():
         
         # Update session data
         current_user_data = {
+            "user_id":user_id,
+            "emailVerified": user_doc.get('emailVerified'),
             'email': user_doc.get('email'),
             'createdAt': user_doc.get('createdAt'),
             'lastLoginAt': firestore.SERVER_TIMESTAMP,
