@@ -360,6 +360,7 @@ def create_free_subscription():
         'total_conversion_usage': 0,
         'startDate': datetime.now().timestamp(),
         'endDate': add_days_to_timestamp(datetime.now().timestamp(), 30),
+        'isActive': True,
         'features': [
             '1 page per day',
             'PDF to Excel conversion',
@@ -603,6 +604,7 @@ def success():
         'prompts_limit': 50,
         'startDate': datetime.now().timestamp(),
         'endDate': add_days_to_timestamp(datetime.now().timestamp(), 30),
+        'isActive': True,
         'features': [
             '50 pages per day',
             'PDF to Excel conversion',
