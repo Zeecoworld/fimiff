@@ -54,7 +54,10 @@
                             <li>Advanced formatting options</li>
                             <li>Multiple file formats</li>
                         </ul>
-                        <button id="submitBtn" type="submit" class="cta-button">Choose Plan</button>
+                    {% if subscription_status == 'active' %}
+                          <button id="submitBtn" type="submit" class="cta-button">Choose Plan</button>
+                    {% endif %}
+                       
                     </div>
                 </div>
             </div>
