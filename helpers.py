@@ -121,44 +121,35 @@ def get_conversion_context():
 
 
 def validate_and_process_pdf(file):
-    if not file or not file.filename:
+    # Check if file is provided
+    if not file:
         return False, "No file provided", None
     
-    if not file.filename.lower().endswith('.pdf'):
+    # If file is a string, check if it's a valid PDF file name
+    if isinstance(file, str) and not file.lower().endswith('.pdf'):
         return False, "Please upload a valid PDF file", None
     
     try:
-        # Debug: Check initial file type
-        print(f"Initial file type: {type(file)}")
-        
         # Ensure we're working with bytes
         if hasattr(file, 'read'):
-            # Debug: Check if file is seekable
-            print(f"File is seekable: {file.seekable()}")
-            print(f"Current file position: {file.tell()}")
-            
-            # Reset file position if needed
-            file.seek(0)
+            # If it's a file-like object, read its content
             file_bytes = file.read()
-            print(f"After read, file_bytes type: {type(file_bytes)}")
         elif isinstance(file, str):
-            print(f"File is a path: {file}")
+            # If it's a file path, read the file
             with open(file, 'rb') as f:
                 file_bytes = f.read()
-                print(f"After reading from path, file_bytes type: {type(file_bytes)}")
         else:
-            print(f"File is neither file-like nor path: {type(file)}")
+            # If it's already bytes, use it directly
             file_bytes = file
         
-        # Debug: Verify bytes content
+        # Ensure we have bytes
         if not isinstance(file_bytes, bytes):
-            print(f"Content is not bytes: {type(file_bytes)}")
-            print(f"First 100 characters: {str(file_bytes[:100])}")
             return False, "Unable to read file content", None
         
         # Process the PDF using pdfplumber
         with pdfplumber.open(BytesIO(file_bytes)) as pdf:
             tables = []
+            # Extract tables from all pages
             for page in pdf.pages:
                 page_tables = page.extract_tables()
                 if page_tables:
@@ -167,11 +158,55 @@ def validate_and_process_pdf(file):
             if not tables:
                 return False, "No tables found in the PDF", None
             
-            # Rest of your table processing code...
+            # Clean and merge tables
+            headers = []
+            all_rows = []
             
+            for table in tables:
+                if not table:
+                    continue
+                
+                # Clean the table data
+                cleaned_table = []
+                for row in table:
+                    cleaned_row = [str(cell).strip() if cell is not None else "" for cell in row]
+                    cleaned_table.append(cleaned_row)
+                
+                # For the first non-empty table, use its headers
+                if not headers and cleaned_table:
+                    headers = cleaned_table[0]
+                    all_rows.extend(cleaned_table[1:])
+                else:
+                    # For subsequent tables, add all rows if they match the header count
+                    for row in cleaned_table:
+                        if len(headers) > 0:
+                            # Skip empty rows
+                            if all(cell == "" for cell in row):
+                                continue
+                            
+                            # If this looks like a header row (matches existing headers), skip it
+                            if any(h.lower() in cell.lower() for h, cell in zip(headers, row) if h and cell):
+                                continue
+                            
+                            # Ensure row has the same length as headers
+                            if len(row) < len(headers):
+                                row.extend([""] * (len(headers) - len(row)))
+                            elif len(row) > len(headers):
+                                row = row[:len(headers)]
+                            
+                            all_rows.append(row)
+            
+            # Create a BytesIO object for the CSV output
+            csv_output = BytesIO()
+            writer = csv.writer(csv_output)
+            
+            # Write the merged data to CSV
+            if headers:
+                writer.writerow(headers)
+            writer.writerows(all_rows)
+            
+            csv_output.seek(0)
             return True, "PDF processed successfully", csv_output
     
     except Exception as e:
-        print(f"Error details: {str(e)}")
-        print(f"Error type: {type(e)}")
         return False, f"Error processing PDF: {str(e)}", None
