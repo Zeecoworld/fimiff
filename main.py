@@ -269,35 +269,33 @@ def convert_file():
     if not file.filename.lower().endswith('.pdf'):
         return jsonify({'error': 'Please upload a PDF file'}), 400
     
-    # Secure the filename
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    
-    # Save the file
-    file.save(filepath)
-    
-    # Process the PDF
     try:
-        is_valid, message, processed_file = validate_and_process_pdf(filepath)
+        # Process PDF directly from file object
+        is_valid, message, processed_file = validate_and_process_pdf(file)
+        
         if not is_valid:
             return jsonify({'error': message}), 400
         
-        # Update conversion tracking
+        # Get user conversions
         user_conversions = get_user_conversions()
+        
+        # Update conversion tracking
         if datetime.now() >= user_conversions['conversions_reset_time']:
             user_conversions['remaining_conversions'] = 1
             user_conversions['conversions_count'] = 0
             user_conversions['conversions_reset_time'] = add_days_to_timestamp(
                 datetime.now().timestamp(), 30
             )
+        
         user_conversions['remaining_conversions'] -= 1
         user_conversions['conversions_count'] += 1
         update_user_conversions(user_conversions)
         
         return jsonify({
             'success': True,
-            'download_url': '/download/' + filename
+            'processed_file': processed_file
         })
+    
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
