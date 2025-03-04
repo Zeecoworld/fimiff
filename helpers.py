@@ -5,7 +5,7 @@ from google.oauth2 import service_account
 import pdfplumber
 from io import BytesIO
 import os
-
+import csv
 
 
 if os.getenv('ENVIRONMENT') == 'development':
@@ -121,9 +121,7 @@ def get_conversion_context():
 
 
 
-import pdfplumber
-import csv
-from io import BytesIO
+
 
 def validate_and_process_pdf(file):
     if not file or not file.filename:
@@ -133,10 +131,8 @@ def validate_and_process_pdf(file):
         return False, "Please upload a valid PDF file", None
     
     try:
-        # Create a BytesIO object to store the file content
-        file_content = BytesIO()
-        file.save(file_content)
-        file_content.seek(0)
+        # Read the file content directly into a BytesIO object
+        file_content = BytesIO(file.read())
         
         # Process the PDF using pdfplumber
         with pdfplumber.open(file_content) as pdf:
@@ -175,14 +171,17 @@ def validate_and_process_pdf(file):
                             # Skip empty rows
                             if all(cell == "" for cell in row):
                                 continue
+                            
                             # If this looks like a header row (matches existing headers), skip it
                             if any(h.lower() in cell.lower() for h, cell in zip(headers, row) if h and cell):
                                 continue
+                            
                             # Ensure row has the same length as headers
                             if len(row) < len(headers):
-                                row.extend([""] * (len(headers) - len(headers)))
+                                row.extend([""] * (len(headers) - len(row)))
                             elif len(row) > len(headers):
                                 row = row[:len(headers)]
+                            
                             all_rows.append(row)
             
             # Create a BytesIO object for the CSV output
