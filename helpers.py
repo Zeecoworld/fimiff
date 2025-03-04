@@ -120,9 +120,6 @@ def get_conversion_context():
     
 
 
-
-
-
 def validate_and_process_pdf(file):
     if not file or not file.filename:
         return False, "No file provided", None
@@ -131,11 +128,24 @@ def validate_and_process_pdf(file):
         return False, "Please upload a valid PDF file", None
     
     try:
-        # Read the file content directly into a BytesIO object
-        file_content = BytesIO(file.read())
+        # Ensure we're working with bytes
+        if hasattr(file, 'read'):
+            # If it's a file-like object, read its content
+            file_bytes = file.read()
+        elif isinstance(file, str):
+            # If it's a file path, read the file
+            with open(file, 'rb') as f:
+                file_bytes = f.read()
+        else:
+            # If it's already bytes, use it directly
+            file_bytes = file
+        
+        # Ensure we have bytes
+        if not isinstance(file_bytes, bytes):
+            return False, "Unable to read file content", None
         
         # Process the PDF using pdfplumber
-        with pdfplumber.open(file_content) as pdf:
+        with pdfplumber.open(BytesIO(file_bytes)) as pdf:
             tables = []
             # Extract tables from all pages
             for page in pdf.pages:
