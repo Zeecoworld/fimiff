@@ -200,45 +200,95 @@
 </section>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('pdf_file');
-    const fileNameSpan = document.getElementById('fileName');
-    const progress = document.getElementById('uploadProgress');
-    const uploadForm = document.getElementById('uploadForm');
+// Move these variables outside the event listener
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('pdf_file');
+const fileNameSpan = document.getElementById('fileName');
+const progress = document.getElementById('uploadProgress');
+const uploadForm = document.getElementById('uploadForm');
 
+// Define handleFileSelect in the global scope
+function handleFileSelect(e) {
+    const file = fileInput.files[0];
+    if (!file) return;
+    fileNameSpan.textContent = file.name;
+    progress.style.width = '0%';
+    progress.parentElement.style.display = 'block';
+    
+    // Create FormData for the file
+    const formData = new FormData();
+    formData.append('pdf_file', file);
+    
+    // Send the file to the conversion endpoint
+    fetch('/convert', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(error => {
+                throw new Error(error.error || 'Conversion failed');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Start the download
+            const downloadUrl = data.download_url;
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = 'extracted_tables.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            // Reset the form
+            uploadForm.reset();
+            fileNameSpan.textContent = 'No file selected';
+            progress.parentElement.style.display = 'none';
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
+        uploadForm.reset();
+        fileNameSpan.textContent = 'No file selected';
+        progress.parentElement.style.display = 'none';
+    });
+}
+
+// Keep the event listeners inside DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
     // Enable drag and drop
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropZone.addEventListener(eventName, preventDefaults);
     });
-
+    
     function preventDefaults(e) {
         e.preventDefault();
         e.stopPropagation();
     }
-
+    
     ['dragenter', 'dragover'].forEach(eventName => {
         dropZone.addEventListener(eventName, highlight);
     });
-
+    
     ['dragleave', 'drop'].forEach(eventName => {
         dropZone.addEventListener(eventName, unhighlight);
     });
-
+    
     dropZone.addEventListener('drop', handleDrop);
-
+    
     function highlight(e) {
         dropZone.classList.add('dragover');
     }
-
+    
     function unhighlight(e) {
         dropZone.classList.remove('dragover');
     }
-
+    
     function handleDrop(e) {
         const dt = e.dataTransfer;
         const files = dt.files;
-
         if (files.length > 0) {
             const file = files[0];
             if (!file.name.toLowerCase().endsWith('.pdf')) {
@@ -248,56 +298,6 @@ document.addEventListener('DOMContentLoaded', () => {
             fileInput.files = dt.files;
             handleFileSelect(e);
         }
-    }
-
-    function handleFileSelect(e) {
-        const file = fileInput.files[0];
-        if (!file) return;
-
-        fileNameSpan.textContent = file.name;
-        progress.style.width = '0%';
-        progress.parentElement.style.display = 'block';
-
-        // Create FormData for the file
-        const formData = new FormData();
-        formData.append('pdf_file', file);
-
-        // Send the file to the conversion endpoint
-        fetch('/convert', {
-            method: 'POST',
-            body: formData,
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(error => {
-                    throw new Error(error.error || 'Conversion failed');
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Start the download
-                const downloadUrl = data.download_url;
-                const link = document.createElement('a');
-                link.href = downloadUrl;
-                link.download = 'extracted_tables.csv';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                // Reset the form
-                uploadForm.reset();
-                fileNameSpan.textContent = 'No file selected';
-                progress.parentElement.style.display = 'none';
-            }
-        })
-        .catch(error => {
-            alert('Error: ' + error.message);
-            uploadForm.reset();
-            fileNameSpan.textContent = 'No file selected';
-            progress.parentElement.style.display = 'none';
-        });
     }
 });
 </script>
