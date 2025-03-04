@@ -818,7 +818,3 @@ def contact():
 @app.route('/privacy', methods=['GET'])
 def privacy():
     return render_template('privacy.html')
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
