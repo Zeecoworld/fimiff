@@ -126,21 +126,27 @@ def validate_and_process_pdf(file):
         return False, "No file provided", None
     
     # If file is a string, check if it's a valid PDF file name
-    if isinstance(file, str) and not file.lower().endswith('.pdf'):
-        return False, "Please upload a valid PDF file", None
+    if isinstance(file, str):
+        if not file.lower().endswith('.pdf'):
+            return False, "Please upload a valid PDF file", None
     
     try:
         # Ensure we're working with bytes
         if hasattr(file, 'read'):
             # If it's a file-like object, read its content
             file_bytes = file.read()
+            # Ensure file_bytes is actually bytes
+            if not isinstance(file_bytes, bytes):
+                file_bytes = file_bytes.encode('utf-8') if isinstance(file_bytes, str) else bytes(file_bytes)
         elif isinstance(file, str):
             # If it's a file path, read the file
             with open(file, 'rb') as f:
                 file_bytes = f.read()
-        else:
+        elif isinstance(file, bytes):
             # If it's already bytes, use it directly
             file_bytes = file
+        else:
+            return False, "Unsupported file type", None
         
         # Ensure we have bytes
         if not isinstance(file_bytes, bytes):
@@ -179,22 +185,24 @@ def validate_and_process_pdf(file):
                 else:
                     # For subsequent tables, add all rows if they match the header count
                     for row in cleaned_table:
-                        if len(headers) > 0:
-                            # Skip empty rows
-                            if all(cell == "" for cell in row):
-                                continue
-                            
-                            # If this looks like a header row (matches existing headers), skip it
-                            if any(h.lower() in cell.lower() for h, cell in zip(headers, row) if h and cell):
-                                continue
-                            
-                            # Ensure row has the same length as headers
-                            if len(row) < len(headers):
-                                row.extend([""] * (len(headers) - len(row)))
-                            elif len(row) > len(headers):
-                                row = row[:len(headers)]
-                            
-                            all_rows.append(row)
+                        if not headers:
+                            break
+                        
+                        # Skip empty rows
+                        if all(cell == "" for cell in row):
+                            continue
+                        
+                        # If this looks like a header row, skip it
+                        if any(h.lower() in cell.lower() for h, cell in zip(headers, row) if h and cell):
+                            continue
+                        
+                        # Ensure row has the same length as headers
+                        if len(row) < len(headers):
+                            row.extend([""] * (len(headers) - len(row)))
+                        elif len(row) > len(headers):
+                            row = row[:len(headers)]
+                        
+                        all_rows.append(row)
             
             # Create a BytesIO object for the CSV output
             csv_output = BytesIO()
