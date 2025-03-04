@@ -61,6 +61,7 @@
             
             <div class="upload-area" id="dropZone">
                 <form id="uploadForm" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <label for="pdf_file" class="cta-button {% if remaining_conversions == 0 %}disabled{% endif %}">
                         Click here to convert a PDF!
                         <input type="file" 
@@ -211,15 +212,11 @@ const uploadForm = document.getElementById('uploadForm');
 function handleFileSelect(e) {
     const file = fileInput.files[0];
     if (!file) return;
-    fileNameSpan.textContent = file.name;
-    progress.style.width = '0%';
-    progress.parentElement.style.display = 'block';
     
-    // Create FormData for the file
     const formData = new FormData();
     formData.append('pdf_file', file);
+    formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
     
-    // Send the file to the conversion endpoint
     fetch('/convert', {
         method: 'POST',
         body: formData,
@@ -234,7 +231,6 @@ function handleFileSelect(e) {
     })
     .then(data => {
         if (data.success) {
-            // Start the download
             const downloadUrl = data.download_url;
             const link = document.createElement('a');
             link.href = downloadUrl;
@@ -242,7 +238,6 @@ function handleFileSelect(e) {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            // Reset the form
             uploadForm.reset();
             fileNameSpan.textContent = 'No file selected';
             progress.parentElement.style.display = 'none';
