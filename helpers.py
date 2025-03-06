@@ -121,39 +121,21 @@ def get_conversion_context():
 
 
 def validate_and_process_pdf(file):
-    # Check if file is provided
-    if not file:
+    if not file or not hasattr(file, 'filename'):
         return False, "No file provided", None
     
-    # If file is a string, check if it's a valid PDF file name
-    if isinstance(file, str):
-        if not file.lower().endswith('.pdf'):
-            return False, "Please upload a valid PDF file", None
+    if not file.filename.lower().endswith('.pdf'):
+        return False, "Please upload a valid PDF file", None
     
     try:
-        # Ensure we're working with bytes
-        if hasattr(file, 'read'):
-            # If it's a file-like object, read its content
-            file_bytes = file.read()
-            # Ensure file_bytes is actually bytes
-            if not isinstance(file_bytes, bytes):
-                file_bytes = file_bytes.encode('utf-8') if isinstance(file_bytes, str) else bytes(file_bytes)
-        elif isinstance(file, str):
-            # If it's a file path, read the file
-            with open(file, 'rb') as f:
-                file_bytes = f.read()
-        elif isinstance(file, bytes):
-            # If it's already bytes, use it directly
-            file_bytes = file
-        else:
-            return False, "Unsupported file type", None
+        # Read the file content and create a fresh BytesIO object
+        file_content = BytesIO(file.read())
         
-        # Ensure we have bytes
-        if not isinstance(file_bytes, bytes):
-            return False, "Unable to read file content", None
+        # Ensure we're at the beginning of the BytesIO object
+        file_content.seek(0)
         
         # Process the PDF using pdfplumber
-        with pdfplumber.open(BytesIO(file_bytes)) as pdf:
+        with pdfplumber.open(file_content) as pdf:
             tables = []
             # Extract tables from all pages
             for page in pdf.pages:
@@ -185,27 +167,25 @@ def validate_and_process_pdf(file):
                 else:
                     # For subsequent tables, add all rows if they match the header count
                     for row in cleaned_table:
-                        if not headers:
-                            break
-                        
-                        # Skip empty rows
-                        if all(cell == "" for cell in row):
-                            continue
-                        
-                        # If this looks like a header row, skip it
-                        if any(h.lower() in cell.lower() for h, cell in zip(headers, row) if h and cell):
-                            continue
-                        
-                        # Ensure row has the same length as headers
-                        if len(row) < len(headers):
-                            row.extend([""] * (len(headers) - len(row)))
-                        elif len(row) > len(headers):
-                            row = row[:len(headers)]
-                        
-                        all_rows.append(row)
+                        if len(headers) > 0:
+                            # Skip empty rows
+                            if all(cell == "" for cell in row):
+                                continue
+                            
+                            # If this looks like a header row (matches existing headers), skip it
+                            if any(h.lower() in cell.lower() for h, cell in zip(headers, row) if h and cell):
+                                continue
+                            
+                            # Ensure row has the same length as headers
+                            if len(row) < len(headers):
+                                row.extend([""] * (len(headers) - len(row)))
+                            elif len(row) > len(headers):
+                                row = row[:len(headers)]
+                            
+                            all_rows.append(row)
             
-            # Create a BytesIO object for the CSV output
-            csv_output = BytesIO()
+            # Create a StringIO object for the CSV output, not BytesIO
+            csv_output = io.StringIO()
             writer = csv.writer(csv_output)
             
             # Write the merged data to CSV
@@ -213,8 +193,12 @@ def validate_and_process_pdf(file):
                 writer.writerow(headers)
             writer.writerows(all_rows)
             
-            csv_output.seek(0)
-            return True, "PDF processed successfully", csv_output
+            # Convert to BytesIO for returning as a file
+            csv_bytes = BytesIO()
+            csv_bytes.write(csv_output.getvalue().encode('utf-8'))
+            csv_bytes.seek(0)
+            
+            return True, "PDF processed successfully", csv_bytes
     
     except Exception as e:
         return False, f"Error processing PDF: {str(e)}", None
