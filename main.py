@@ -14,6 +14,7 @@ from google.cloud import firestore
 from google.oauth2 import service_account
 from datetime import datetime, timedelta
 from jinja2 import Template
+from tzlocal import get_localzone
 from functools import wraps
 from dotenv import load_dotenv
 from flask_wtf import FlaskForm, CSRFProtect
@@ -65,7 +66,7 @@ class LoginForm(FlaskForm):
     
 
 load_dotenv()
-
+local_timezone = get_localzone().key
 
 if os.getenv('ENVIRONMENT') == 'development':
     db = firestore.Client.from_service_account_json('./serviceAccountKey.json')
@@ -94,6 +95,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
 app.config["SESSION_TYPE"] = "filesystem"
 app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config.setdefault('TIMEZONE', local_timezone)
 csrf = CSRFProtect(app)
 
 
