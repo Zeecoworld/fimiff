@@ -145,20 +145,35 @@ def pluralize(value):
     return ''
 
 @app.template_filter()
-def time_diff(dt):
-    if dt is None:
-        return "unknown"  
-    now = datetime.now(app.config['TIMEZONE'])
+def time_diff(timestamp):
+    if timestamp is None:
+        return "unknown"
+    
+    dt = datetime.fromtimestamp(timestamp)
+    try:
+        tz = pytz.timezone(app.config['TIMEZONE'])
+        now = datetime.now(tz)
+        # Make dt timezone-aware
+        dt = dt.replace(tzinfo=tz)
+    except (TypeError, pytz.exceptions.UnknownTimeZoneError):
+        now = datetime.now()
+    
     diff = dt - now
-    # Handle negative differences (when reset time has passed)
     if diff.total_seconds() <= 0:
         return "Time has passed"
-    hours = diff.seconds // 3600
-    minutes = (diff.seconds // 60) % 60
-    # Only show hours if greater than 0
-    time_str = f"{minutes} minutes"
-    if hours > 0:
+    
+    total_seconds = int(diff.total_seconds())
+    days = total_seconds // (24 * 3600)
+    hours = (total_seconds % (24 * 3600)) // 3600
+    minutes = (total_seconds % 3600) // 60
+    # Format the time string
+    if days > 0:
+        time_str = f"{days} days, {hours} hours and {minutes} minutes"
+    elif hours > 0:
         time_str = f"{hours} hours and {minutes} minutes"
+    else:
+        time_str = f"{minutes} minutes"
+    
     return time_str
 
 
