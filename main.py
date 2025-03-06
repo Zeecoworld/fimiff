@@ -791,9 +791,6 @@ def logout():
 
 @app.route('/pricing', methods=['GET'])
 def pricing():
-    if 'emailVerified' not in session or 'user_id' not in session or not session['emailVerified']:
-        return redirect(url_for('home'))
-
     try:
         # Get user data from Firestore
         user_ref = db.collection('users').document(session['user_id'])
