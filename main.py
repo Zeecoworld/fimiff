@@ -291,9 +291,12 @@ def convert_file():
         user_conversions['conversions_count'] += 1
         update_user_conversions(user_conversions)
         
+        # Convert BytesIO to string for JSON response
+        csv_data = processed_file.getvalue().decode('utf-8')
+        
         return jsonify({
             'success': True,
-            'processed_file': processed_file
+            'processed_file': csv_data
         })
     
     except Exception as e:
