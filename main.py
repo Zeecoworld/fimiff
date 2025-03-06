@@ -7,6 +7,7 @@ import uuid
 import os
 import re
 import json
+import pytz
 from datetime import datetime
 from flask_mail import Mail, Message
 from google.cloud import firestore
@@ -259,51 +260,66 @@ def home():
 
 
 @app.route('/convert', methods=['POST'])
-def convert_file():
-    # Get the file
-    file = request.files.get('pdf_file')
-    if not file:
-        return jsonify({'error': 'No file provided'}), 400
-    
-    # Validate file extension
-    if not file.filename.lower().endswith('.pdf'):
-        return jsonify({'error': 'Please upload a PDF file'}), 400
-    
+def convert():
     try:
-        # Process PDF directly from file object
-        is_valid, message, processed_file = validate_and_process_pdf(file)
+        # Get the file
+        file = request.files.get('pdf_file')
+        if not file:
+            return jsonify({'error': 'No file provided'}), 400
         
+        # Validate file extension
+        if not file.filename.lower().endswith('.pdf'):
+            return jsonify({'error': 'Please upload a PDF file'}), 400
+        
+        # Process PDF
+        is_valid, message, processed_file = validate_and_process_pdf(file)
         if not is_valid:
             return jsonify({'error': message}), 400
         
+    
         # Get user conversions
         user_conversions = get_user_conversions()
         
         # Update conversion tracking
-        if datetime.now() >= user_conversions['conversions_reset_time']:
-            user_conversions['remaining_conversions'] = 1
-            user_conversions['conversions_count'] = 0
-            user_conversions['conversions_reset_time'] = add_days_to_timestamp(
-                datetime.now().timestamp(), 30
-            )
+        current_timestamp = int(datetime.now().timestamp())
+        reset_timestamp = user_conversions['conversions_reset_time']
         
+        # Check if reset is needed
+        if current_timestamp >= reset_timestamp:
+            user_conversions.update({
+                'remaining_conversions': 1,
+                'conversions_count': 0,
+                'conversions_reset_time': current_timestamp.timestamp()
+            })
+        else:
+            # Check if user has remaining conversions
+            if user_conversions['remaining_conversions'] <= 0:
+                return jsonify({
+                    'error': 'No remaining conversions available',
+                    'remaining_conversions': 0
+                }), 429
+        
+        # Update conversion count
         user_conversions['remaining_conversions'] -= 1
         user_conversions['conversions_count'] += 1
+        
+        # Save the updated conversions
         update_user_conversions(user_conversions)
         
-        # Convert BytesIO to string for JSON response
-        csv_data = processed_file.getvalue().decode('utf-8')
-        
-        response = send_file(
+        # Return the CSV file
+        processed_file.seek(0)
+        return send_file(
             processed_file,
             mimetype='text/csv',
             as_attachment=True,
             download_name='bankstatementconverter.csv'
         )
-        return response
     
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({
+            'error': str(e),
+            'status': 500
+        }), 500
 
 
 @app.route('/verify-email/<token>/<uid>')
