@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, session, url_for,request, flash, jsonify
+from flask import Flask, render_template, redirect, session, url_for,request, flash, jsonify,send_file
 from werkzeug.security import generate_password_hash,check_password_hash
 from werkzeug.utils import secure_filename
 import secrets
@@ -294,10 +294,13 @@ def convert_file():
         # Convert BytesIO to string for JSON response
         csv_data = processed_file.getvalue().decode('utf-8')
         
-        return jsonify({
-            'success': True,
-            'processed_file': csv_data
-        })
+        response = send_file(
+            processed_file,
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name='bankstatementconverter.csv'
+        )
+        return response
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
