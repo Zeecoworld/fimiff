@@ -398,17 +398,22 @@ def create_free_subscription():
             'PDF to Excel conversion',
             'Basic formatting options'
         ],
-        'storage_limit_gb': 0.5,  
+        'storage_limit_gb': 0.5,
         'file_size_limit_mb': 5,
         'created_at': firestore.SERVER_TIMESTAMP,
         'status': 'active',
-        'last_updated': firestore.SERVER_TIMESTAMP
-    }
+        'last_updated': firestore.SERVER_TIMESTAMP,
+        'daily_usage': {
+            'pages_processed': 0,
+            'last_reset': firestore.SERVER_TIMESTAMP,
+            'reset_frequency': 'daily'
+        }
+}
 
 def create_premium_subscription():
     """Create a premium subscription plan with advanced features"""
     return {
-        'plan': 'premium', 
+        'plan': 'premium',
         'prompts_limit': 50,
         'features': [
             '50 pages per day',
@@ -418,13 +423,18 @@ def create_premium_subscription():
             'Priority processing',
             'Batch processing'
         ],
-        'storage_limit_gb': 5,  # 5GB storage
+        'storage_limit_gb': 5,
         'file_size_limit_mb': 50,
         'created_at': firestore.SERVER_TIMESTAMP,
         'status': 'active',
-        'last_updated': firestore.SERVER_TIMESTAMP
-    }
-
+        'last_updated': firestore.SERVER_TIMESTAMP,
+        'daily_usage': {
+            'pages_processed': 0,
+            'last_reset': firestore.SERVER_TIMESTAMP,
+            'reset_frequency': 'daily',
+            'batch_limit': 10  # Maximum pages per batch
+        }
+}
 
 
 @app.route('/register', methods=['GET', 'POST'])
