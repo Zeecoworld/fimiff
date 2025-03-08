@@ -615,99 +615,81 @@ def success():
     try:
         email = session.get('emailVerified')
         user_id = session.get('user_id')
-        
         if not email or not user_id:
             return redirect(url_for('home'))
             
-        # Get Stripe session ID from URL params
         session_id = request.args.get('session_id')
         if not session_id:
             return redirect(url_for('dashboard'))
             
-        # Retrieve the Stripe session to get subscription info
         stripe_session = stripe.checkout.Session.retrieve(session_id)
         subscription_id = stripe_session.subscription
-        
         if not subscription_id:
             return redirect(url_for('dashboard'))
             
-        # Verify the subscription is active
         subscription = stripe.Subscription.retrieve(subscription_id)
         if subscription.status != 'active':
             return redirect(url_for('dashboard'))
             
-        # Update user document in Firestore
+        batch = db.batch()
         user_ref = db.collection('users').document(user_id)
-        user_doc = user_ref.get()
+        usage_ref = db.collection('conversions').document(user_id)
         
-        if not user_doc.exists:
-            return redirect(url_for('home'))
-            
-        # Create premium subscription data
         premium_subscription = {
-        'plan': 'premium', 
-        'prompts_limit': 50,
-        'features': [
-            '50 pages per day',
-            'PDF to Excel conversion',
-            'Advanced formatting options',
-            'Multiple file formats',
-            'Priority processing',
-            'Batch processing'
-        ],
-        'storage_limit_gb': 5,  # 5GB storage
-        'file_size_limit_mb': 50,
-        'created_at': firestore.SERVER_TIMESTAMP,
-        'status': 'active',
-        'daily_usage': {
-            'pages_processed': 0,
-            'last_reset': firestore.SERVER_TIMESTAMP,
-            'reset_frequency': 'daily',
-            'batch_limit': 10  # Maximum pages per batch
-        },
-       }
+            'plan': 'premium',
+            'prompts_limit': 50,
+            'features': [
+                '50 pages per day',
+                'PDF to Excel conversion',
+                'Advanced formatting options',
+                'Multiple file formats',
+                'Priority processing',
+                'Batch processing'
+            ],
+            'storage_limit_gb': 5,
+            'file_size_limit_mb': 50,
+            'created_at': firestore.SERVER_TIMESTAMP,
+            'status': 'active',
+            'daily_usage': {
+                'pages_processed': 0,
+                'last_reset': firestore.SERVER_TIMESTAMP,
+                'reset_frequency': 'daily',
+                'batch_limit': 10
+            }
+        }
         
-        # Update user document
-        user_ref.update({
+        batch.update(user_ref, {
             'subscription': premium_subscription,
             'last_updated': firestore.SERVER_TIMESTAMP
         })
         
-        # Initialize or update usage tracking
-        usage_ref = db.collection('conversions').document(user_id)
-        usage_ref.set({
-                    'remaining_conversions': 50,  
-                    'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),  
-                    'conversions_count': 0  
+        batch.set(usage_ref, {
+            'remaining_conversions': 50,
+            'conversions_reset_time': add_days_to_timestamp(
+                datetime.now().timestamp(), 30
+            ),
+            'conversions_count': 0
         }, merge=True)
         
+        batch.commit()
+        
         # Update session data
-        current_user_data = {
-            'email': user_doc.get('email'),
-            'createdAt': user_doc.get('createdAt'),
-            'lastLoginAt': firestore.SERVER_TIMESTAMP,
-            'emailVerified': user_doc.get('emailVerified'),
-            'session_id': user_doc.get('session_id', str(uuid.uuid4())),
-            'conversions': user_doc.get('conversions', {})
+        session['conversions'] = {
+            'remaining_conversions': 50,
+            'conversions_reset_time': add_days_to_timestamp(
+                datetime.now().timestamp(), 30
+            ),
+            'conversions_count': 0
         }
-
-        session['conversions'] = current_user_data.get('conversions', {
-           'remaining_conversions': 50,
-           'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
-           'conversions_count': 0
-        })
         session['premium_subscription'] = json.dumps(premium_subscription)
         
-        # Update session
-        for key, value in current_user_data.items():
-            session[key] = value
         return redirect(url_for('dashboard'))
-        
     except stripe.error.StripeError as e:
         return redirect(url_for('dashboard'))
-        
     except Exception as e:
         return redirect(url_for('dashboard'))
+
+
     
 
 @app.route('/stripe-webhook', methods=['POST'])
