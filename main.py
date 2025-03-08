@@ -787,10 +787,6 @@ def pricing():
         # Get user data from Firestore
         user_ref = db.collection('users').document(session['user_id'])
         user_doc = user_ref.get()
-        
-        if not user_doc.exists:
-            session.clear()
-            return redirect(url_for('home'))
             
         user_data = user_doc.to_dict()
         
@@ -828,7 +824,7 @@ def pricing():
         
     except Exception as e:
         session.clear()
-        return redirect(url_for('home'))
+        return redirect(url_for('pricing.html'))
 
 
 @app.route('/about', methods=['GET'])
