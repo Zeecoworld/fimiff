@@ -777,7 +777,7 @@ def dashboard():
             'email': user_data['email'],
             'subscription': {
                 'type': user_data['subscription']['plan'],
-                'isActive': user_data['subscription']['isActive']
+                'isActive': user_data['subscription']['status']
             }
         }
 
