@@ -649,6 +649,12 @@ def success():
         'file_size_limit_mb': 50,
         'created_at': firestore.SERVER_TIMESTAMP,
         'status': 'active',
+        'daily_usage': {
+            'pages_processed': 0,
+            'last_reset': firestore.SERVER_TIMESTAMP,
+            'reset_frequency': 'daily',
+            'batch_limit': 10  # Maximum pages per batch
+        },
        }
         
         # Update user document
