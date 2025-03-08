@@ -4,6 +4,7 @@ from google.cloud import firestore
 from google.oauth2 import service_account
 import pdfplumber
 from io import BytesIO
+import io
 import os
 import csv
 
