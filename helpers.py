@@ -6,7 +6,9 @@ import pdfplumber
 from io import BytesIO
 import io
 import os
+import json
 import csv
+
 
 
 if os.getenv('ENVIRONMENT') == 'development':
@@ -63,6 +65,7 @@ def get_user_conversions():
         'conversions_count': 0
     }
 
+
 def update_user_conversions(conversions):
     """Update user's conversion data in database and session."""
     if 'user_id' in session:
@@ -90,13 +93,14 @@ def get_conversion_context():
             'conversions_count': conversions_count
         }
     except Exception as e:
-        # Fallback values matching database structure
         return {
             'remaining_conversions': 1,
             'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
             'conversions_count': 0
         }
     
+
+
 
 
 def validate_and_process_pdf(file):
@@ -205,6 +209,80 @@ def validate_and_process_pdf(file):
             csv_bytes.seek(0)
             
             return True, "PDF processed successfully", csv_bytes
+    
+    except Exception as e:
+        return False, f"Error processing PDF: {str(e)}", None
+    
+
+
+def validate_and_process_json(file):
+    if not file or not hasattr(file, 'filename'):
+        return False, "No file provided", None
+    
+    if not file.filename.lower().endswith('.pdf'):
+        return False, "Please upload a valid PDF file", None
+    
+    try:
+        # Read the file content and create a fresh BytesIO object
+        file_content = BytesIO(file.read())
+        file_content.seek(0)
+        
+        # Process the PDF using pdfplumber
+        with pdfplumber.open(file_content) as pdf:
+            tables = []
+            for page in pdf.pages:
+                page_tables = page.extract_tables()
+                if page_tables:
+                    tables.extend(page_tables)
+            
+            if not tables:
+                return False, "No tables found in the PDF", None
+            
+            # Clean and merge tables
+            headers = []
+            all_rows = []
+            
+            for table in tables:
+                if not table:
+                    continue
+                
+                # Clean the table data
+                cleaned_table = []
+                for row in table:
+                    cleaned_row = [str(cell).strip() if cell is not None else "" for cell in row]
+                    cleaned_table.append(cleaned_row)
+                
+                # For the first non-empty table, use its headers
+                if not headers and cleaned_table:
+                    headers = cleaned_table[0]
+                    all_rows.extend(cleaned_table[1:])
+                else:
+                    # For subsequent tables, add all rows if they match the header count
+                    for row in cleaned_table:
+                        if len(headers) > 0:
+                            if all(cell == "" for cell in row):
+                                continue
+                            
+                            if any(h.lower() in cell.lower() for h, cell in zip(headers, row) if h and cell):
+                                continue
+                            
+                            if len(row) < len(headers):
+                                row.extend([""] * (len(headers) - len(row)))
+                            elif len(row) > len(headers):
+                                row = row[:len(headers)]
+                            
+                            all_rows.append(row)
+            
+            # Convert to JSON format
+            json_data = {
+                'headers': headers,
+                'rows': all_rows
+            }
+            json_bytes = BytesIO()
+            json_bytes.write(json.dumps(json_data, indent=2).encode('utf-8'))
+            json_bytes.seek(0)
+            
+            return True, "PDF processed successfully", json_bytes
     
     except Exception as e:
         return False, f"Error processing PDF: {str(e)}", None
