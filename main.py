@@ -736,7 +736,8 @@ def stripe_webhook():
 
 @app.route('/cancel/', methods=['GET'])
 def cancel():
-     return redirect(url_for('dashboard'))
+    flash("Transaction not successful.", 'error')
+    return redirect(url_for('dashboard'))
 
 
 
