@@ -41,39 +41,17 @@ def get_user_conversions():
     if 'user_id' in session:
         user_ref = db.collection('users').document(session['user_id'])
         user_data = user_ref.get().to_dict()
-        
-        # Initialize conversions data if it doesn't exist
-        if user_data is None:
-            user_data = {
-                'firstName': '',
-                'lastName': '',
-                'email': '',
-                'createdAt': firestore.SERVER_TIMESTAMP,
-                'emailVerified': False,
-                'active': False,
-                'subscription': {
-                    'type': '',
-                    'startDate': datetime.now().timestamp(),
-                    'endDate': add_days_to_timestamp(datetime.now().timestamp(), 30),
-                    'isActive': True
-                },
-                'conversions': {
-                    'remaining_conversions': 1,
-                    'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
-                    'conversions_count': 0
-                }
-            }
-            user_ref.set(user_data)
-        elif 'conversions' not in user_data:
+        plan = user_data.get('subscription', {}).get('plan') #plan == "premium"
+        if 'conversions' not in user_data:
             user_data['conversions'] = {
-                'remaining_conversions': 1,
+                'remaining_conversions': 1,  
                 'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
                 'conversions_count': 0
             }
             user_ref.set(user_data, merge=True)
             
         return user_data.get('conversions', {
-            'remaining_conversions': 1,
+            'remaining_conversions': 50 if plan == "premium" else 1,
             'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
             'conversions_count': 0
         })
