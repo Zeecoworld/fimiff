@@ -613,30 +613,41 @@ def create_checkout_session():
 @app.route("/success")
 def success():
     try:
+        # Get user data from session
         email = session.get('emailVerified')
         user_id = session.get('user_id')
+        
         if not email or not user_id:
+            flash("Please verify your email.", 'error')
             return redirect(url_for('home'))
             
+        # Get Stripe session ID from URL params
         session_id = request.args.get('session_id')
         if not session_id:
             return redirect(url_for('dashboard'))
             
+        # Retrieve the Stripe session to get subscription info
         stripe_session = stripe.checkout.Session.retrieve(session_id)
         subscription_id = stripe_session.subscription
+        
         if not subscription_id:
             return redirect(url_for('dashboard'))
             
+        # Verify the subscription is active
         subscription = stripe.Subscription.retrieve(subscription_id)
         if subscription.status != 'active':
             return redirect(url_for('dashboard'))
             
-        batch = db.batch()
+        # Update user document in Firestore
         user_ref = db.collection('users').document(user_id)
-        usage_ref = db.collection('conversions').document(user_id)
+        user_doc = user_ref.get()
         
+        if not user_doc.exists:
+            return redirect(url_for('home'))
+            
+        # Create premium subscription data
         premium_subscription = {
-            'plan': 'premium',
+            'plan': 'premium', 
             'prompts_limit': 50,
             'features': [
                 '50 pages per day',
@@ -646,7 +657,7 @@ def success():
                 'Priority processing',
                 'Batch processing'
             ],
-            'storage_limit_gb': 5,
+            'storage_limit_gb': 5,  # 5GB storage
             'file_size_limit_mb': 50,
             'created_at': firestore.SERVER_TIMESTAMP,
             'status': 'active',
@@ -654,38 +665,47 @@ def success():
                 'pages_processed': 0,
                 'last_reset': firestore.SERVER_TIMESTAMP,
                 'reset_frequency': 'daily',
-                'batch_limit': 10
+                'batch_limit': 10  # Maximum pages per batch
             }
         }
         
-        batch.update(user_ref, {
+        # Create conversions data
+        conversions_data = {
+            'remaining_conversions': 50,
+            'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
+            'conversions_count': 0
+        }
+        
+        # Update user document with both subscription and conversions data
+        user_ref.update({
             'subscription': premium_subscription,
+            'conversions': conversions_data,  # Add this line to update conversions in user doc
             'last_updated': firestore.SERVER_TIMESTAMP
         })
         
-        batch.set(usage_ref, {
-            'remaining_conversions': 50,
-            'conversions_reset_time': add_days_to_timestamp(
-                datetime.now().timestamp(), 30
-            ),
-            'conversions_count': 0
-        }, merge=True)
-        
-        batch.commit()
-        
         # Update session data
-        session['conversions'] = {
-            'remaining_conversions': 50,
-            'conversions_reset_time': add_days_to_timestamp(
-                datetime.now().timestamp(), 30
-            ),
-            'conversions_count': 0
+        current_user_data = {
+            'email': user_doc.get('email'),
+            'createdAt': user_doc.get('createdAt'),
+            'lastLoginAt': firestore.SERVER_TIMESTAMP,
+            'emailVerified': user_doc.get('emailVerified'),
+            'session_id': user_doc.get('session_id', str(uuid.uuid4())),
+            'conversions': conversions_data  # Use the new data directly
         }
+        
+        # Update conversions in session
+        session['conversions'] = conversions_data
         session['premium_subscription'] = json.dumps(premium_subscription)
         
+        # Update session
+        for key, value in current_user_data.items():
+            session[key] = value
+        
         return redirect(url_for('dashboard'))
+        
     except stripe.error.StripeError as e:
         return redirect(url_for('dashboard'))
+        
     except Exception as e:
         return redirect(url_for('dashboard'))
 
