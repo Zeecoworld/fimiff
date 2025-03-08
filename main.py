@@ -777,7 +777,6 @@ def dashboard():
             'email': user_data['email'],
             'subscription': {
                 'type': user_data['subscription']['plan'],
-                'startDate': datetime.fromtimestamp(user_data['subscription']['created_at']).strftime('%Y-%m-%d'),
                 'isActive': user_data['subscription']['isActive']
             }
         }
