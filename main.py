@@ -393,17 +393,12 @@ def create_free_subscription():
     return {
         'plan': 'free',
         'prompts_limit': 1,
-        'daily_conversion_limit': 1,
-        'total_conversion_usage': 0,
-        'startDate': datetime.now().timestamp(),
-        'endDate': add_days_to_timestamp(datetime.now().timestamp(), 30),
-        'isActive': True,
         'features': [
             '1 page per day',
             'PDF to Excel conversion',
             'Basic formatting options'
         ],
-        'storage_limit_gb': 0.5,  # 500MB storage
+        'storage_limit_gb': 0.5,  
         'file_size_limit_mb': 5,
         'created_at': firestore.SERVER_TIMESTAMP,
         'status': 'active',
@@ -413,10 +408,8 @@ def create_free_subscription():
 def create_premium_subscription():
     """Create a premium subscription plan with advanced features"""
     return {
-        'plan': 'premium',  # Fixed incorrect label
+        'plan': 'premium', 
         'prompts_limit': 50,
-        'daily_conversion_limit': 50,
-        'total_conversion_usage': 0,
         'features': [
             '50 pages per day',
             'PDF to Excel conversion',
@@ -610,14 +603,16 @@ def create_checkout_session():
 @app.route("/success")
 def success():
     try:
-        # Get user data from session
-        emailVerified = session.get('emailVerified')
+        email = session.get('emailVerified')
         user_id = session.get('user_id')
+        
+        if not email or not user_id:
+            return redirect(url_for('home'))
             
         # Get Stripe session ID from URL params
         session_id = request.args.get('session_id')
         if not session_id:
-            return redirect(url_for('home'))
+            return redirect(url_for('dashboard'))
             
         # Retrieve the Stripe session to get subscription info
         stripe_session = stripe.checkout.Session.retrieve(session_id)
@@ -634,14 +629,14 @@ def success():
         # Update user document in Firestore
         user_ref = db.collection('users').document(user_id)
         user_doc = user_ref.get()
+        
+        if not user_doc.exists:
+            return redirect(url_for('home'))
             
         # Create premium subscription data
         premium_subscription = {
         'plan': 'premium', 
         'prompts_limit': 50,
-        'startDate': datetime.now().timestamp(),
-        'endDate': add_days_to_timestamp(datetime.now().timestamp(), 30),
-        'isActive': True,
         'features': [
             '50 pages per day',
             'PDF to Excel conversion',
@@ -665,15 +660,13 @@ def success():
         # Initialize or update usage tracking
         usage_ref = db.collection('conversions').document(user_id)
         usage_ref.set({
-                    'remaining_conversions': 50,  # Default number of conversions
+                    'remaining_conversions': 50,  
                     'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),  
-                    'conversions_count': 0  # Current conversion count
+                    'conversions_count': 0  
         }, merge=True)
         
         # Update session data
         current_user_data = {
-            "user_id":user_id,
-            "emailVerified": user_doc.get('emailVerified'),
             'email': user_doc.get('email'),
             'createdAt': user_doc.get('createdAt'),
             'lastLoginAt': firestore.SERVER_TIMESTAMP,
@@ -683,17 +676,15 @@ def success():
         }
 
         session['conversions'] = current_user_data.get('conversions', {
-           'remaining_conversions': 0,
+           'remaining_conversions': 50,
            'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
-           'conversions_count': 50
+           'conversions_count': 0
         })
         session['premium_subscription'] = json.dumps(premium_subscription)
         
         # Update session
         for key, value in current_user_data.items():
             session[key] = value
-            
-        # Redirect to dashboard with success message
         return redirect(url_for('dashboard'))
         
     except stripe.error.StripeError as e:
