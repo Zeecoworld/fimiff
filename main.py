@@ -784,47 +784,50 @@ def logout():
 @app.route('/pricing', methods=['GET'])
 def pricing():
     try:
-        # Get user data from Firestore
-        user_ref = db.collection('users').document(session['user_id'])
-        user_doc = user_ref.get()
+        # First, render the pricing page for all users
+        context = {
+            'plans': {
+                'basic': {
+                    'name': 'Basic'
+                },
+                'premium': {
+                    'name': 'Premium'
+                }
+            }
+        }
+        
+        if 'user_id' in session:
+            user_ref = db.collection('users').document(session['user_id'])
+            user_doc = user_ref.get()
             
-        user_data = user_doc.to_dict()
-        
-        # Determine subscription handling based on user's subscription status
-        subscription_status = user_data.get('subscription', {}).get('status')
-        stripe_subscription_id = user_data.get('subscription', {}).get('stripe_subscription_id')
-        
-        # For premium users, verify subscription status with Stripe
-        if subscription_status == 'premium':
-            try:
-                # Verify subscription is still active in Stripe
-                subscription = stripe.Subscription.retrieve(stripe_subscription_id)
+            if user_doc.exists:
+                user_data = user_doc.to_dict()
+                subscription_status = user_data.get('subscription', {}).get('status')
+                stripe_subscription_id = user_data.get('subscription', {}).get('stripe_subscription_id')
                 
-                # Update Firestore with latest subscription status
-                if subscription.status != subscription_status:
-                    user_ref.set({
-                        'subscription': {
-                            'status': subscription.status,
-                            'plan': subscription.plan.id
-                        }
-                    }, merge=True)
-                    
-                subscription_status = subscription.status
+                if subscription_status == 'premium':
+                    try:
+                        subscription = stripe.Subscription.retrieve(stripe_subscription_id)
+                        if subscription.status != subscription_status:
+                            user_ref.set({
+                                'subscription': {
+                                    'status': subscription.status,
+                                    'plan': subscription.plan.id
+                                }
+                            }, merge=True)
+                        subscription_status = subscription.status
+                    except stripe.error.StripeError as e:
+                        subscription_status = 'error'
                 
-            except stripe.error.StripeError as e:
-                # Log the error but continue with cached status
-                subscription_status = 'error'
+                context.update({
+                    'user_plan': user_data.get('subscription', {}).get('plan'),
+                    'subscription_status': subscription_status
+                })
         
-        # Render template with updated subscription status
-        return render_template(
-            'pricing.html',
-            plan=user_data.get('subscription', {}).get('plan'),
-            subscription_status=subscription_status
-        )
-        
+        return render_template('pricing.html', **context)
+    
     except Exception as e:
-        session.clear()
-        return redirect(url_for('pricing.html'))
+        return render_template('pricing.html', error=str(e))
 
 
 @app.route('/about', methods=['GET'])
