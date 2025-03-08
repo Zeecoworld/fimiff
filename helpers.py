@@ -108,14 +108,51 @@ def validate_and_process_pdf(file):
     try:
         # Read the file content and create a fresh BytesIO object
         file_content = BytesIO(file.read())
-        
-        # Ensure we're at the beginning of the BytesIO object
         file_content.seek(0)
         
         # Process the PDF using pdfplumber
         with pdfplumber.open(file_content) as pdf:
+            # Check page count restrictions
+            page_count = len(pdf.pages)
+            
+            # Get user's subscription status
+            if 'user_id' in session:
+                user_ref = db.collection('users').document(session['user_id'])
+                user_doc = user_ref.get()
+                if user_doc.exists:
+                    subscription_status = user_doc.to_dict().get('subscription', {}).get('status')
+                else:
+                    subscription_status = 'free'
+            else:
+                subscription_status = 'free'
+            
+            # Check page count limits
+            if subscription_status == 'free' and page_count > 1:
+                return False, "Free users are limited to 1 page per PDF", None
+            elif subscription_status == 'premium' and page_count > 50:
+                return False, "Premium users are limited to 50 pages per PDF", None
+            
+            # Check daily limits
+            if subscription_status == 'premium':
+                # Get today's date
+                today = datetime.now().date()
+                
+                # Check daily usage
+                daily_usage_ref = db.collection('daily_usage').document(f"{session['user_id']}-{today}")
+                daily_usage = daily_usage_ref.get().to_dict()
+                
+                if daily_usage and daily_usage.get('pages_used', 0) + page_count > 50:
+                    return False, "Daily page limit exceeded", None
+                
+                # Update daily usage
+                daily_usage_ref.set({
+                    'user_id': session['user_id'],
+                    'date': today,
+                    'pages_used': (daily_usage.get('pages_used', 0) + page_count)
+                }, merge=True)
+            
+            # Process tables
             tables = []
-            # Extract tables from all pages
             for page in pdf.pages:
                 page_tables = page.extract_tables()
                 if page_tables:
@@ -127,39 +164,29 @@ def validate_and_process_pdf(file):
             # Clean and merge tables
             headers = []
             all_rows = []
-            
             for table in tables:
                 if not table:
                     continue
                 
-                # Clean the table data
                 cleaned_table = []
                 for row in table:
                     cleaned_row = [str(cell).strip() if cell is not None else "" for cell in row]
                     cleaned_table.append(cleaned_row)
                 
-                # For the first non-empty table, use its headers
                 if not headers and cleaned_table:
                     headers = cleaned_table[0]
                     all_rows.extend(cleaned_table[1:])
                 else:
-                    # For subsequent tables, add all rows if they match the header count
                     for row in cleaned_table:
                         if len(headers) > 0:
-                            # Skip empty rows
                             if all(cell == "" for cell in row):
                                 continue
-                            
-                            # If this looks like a header row (matches existing headers), skip it
                             if any(h.lower() in cell.lower() for h, cell in zip(headers, row) if h and cell):
                                 continue
-                            
-                            # Ensure row has the same length as headers
                             if len(row) < len(headers):
                                 row.extend([""] * (len(headers) - len(row)))
                             elif len(row) > len(headers):
                                 row = row[:len(headers)]
-                            
                             all_rows.append(row)
             
             # Create a StringIO object for the CSV output, not BytesIO
