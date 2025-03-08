@@ -38,8 +38,6 @@ p {
     <div class="subscription-info">
         <h2>Subscription Details</h2>
         <p>Type: {{ user_data.subscription.type }}</p>
-        <p>Start Date: {{ user_data.subscription.startDate }}</p>
-        <p>End Date: {{ user_data.subscription.endDate }}</p>
         <p>Status: {% if user_data.subscription.isActive %}Active{% else %}Inactive{% endif %}</p>
     </div>
 </div>
