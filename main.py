@@ -745,7 +745,7 @@ def stripe_webhook():
 
 @app.route('/cancel/', methods=['GET'])
 def cancel():
-    flash("Transaction not successful.", 'error')
+    flash("Transaction not successful. Contact us via support@bankstatementconverter.online for support", 'error')
     return redirect(url_for('dashboard'))
 
 
