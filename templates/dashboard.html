@@ -26,19 +26,19 @@ p {
 }
 </style>
 <div class="dashboard-container">
-    <h1>Dashboard</h1>
+    <h1>{{ text['profile_information'] }}</h1>
     
     <div class="user-info">
-        <h2>Profile Information</h2>
-        <p>First Name: {{ user_data.firstName }}</p>
-        <p>Last Name: {{ user_data.lastName }}</p>
-        <p>Email: {{ user_data.email }}</p>
+        <h2>{{ text['profile_information'] }}</h2>
+        <p>{{ text['first_name'] }}: {{ user_data.firstName }}</p>
+        <p>{{ text['last_name'] }}: {{ user_data.lastName }}</p>
+        <p>{{ text['email'] }}: {{ user_data.email }}</p>
     </div>
 
     <div class="subscription-info">
-        <h2>Subscription Details</h2>
-        <p>Type: {{ user_data.subscription.type }}</p>
-        <p>Status: {% if user_data.subscription.isActive %}Active{% else %}Inactive{% endif %}</p>
+        <h2>{{ text['subscription_details'] }}</h2>
+        <p>{{ text['type'] }}: {{ user_data.subscription.type }}</p>
+        <p>{{ text['status'] }}</p>: {% if user_data.subscription.isActive %}Active{% else %}Inactive{% endif %}</p>
     </div>
 </div>
 {% endblock %}
