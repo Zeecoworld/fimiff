@@ -1,1 +1,127 @@
 
+translations_privacy = {
+
+    "en": {
+        "privacy_policy": "Privacy Policy",
+        "last_updated": "Last updated: March 1, 2025",
+        "introduction": "Bank Statement Converter Ltd. is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our bank statement conversion service.",
+        "consent": "By using our service, you consent to the data practices described in this policy. Please read this policy carefully to understand our practices regarding your personal data.",
+        "information_we_collect": "Information We Collect",
+        "account_information": "Account Information: When you register, we collect your name, email address, and password.",
+        "payment_information": "Payment Information: When you purchase a subscription, payment information is processed by our secure payment processors.",
+        "service_usage": "Service Usage: We collect information on how you use our service, including conversion statistics.",
+        "bank_statement_data": "Bank Statement Data: We temporarily process the bank statements you upload for conversion.",
+        "how_we_use_your_information": "How We Use Your Information",
+        "use_cases": [
+            "Provide, maintain, and improve our services",
+            "Process transactions and send related information",
+            "Respond to comments, questions, and customer service requests",
+            "Send technical notices, updates, security alerts, and support messages",
+            "Monitor and analyze trends, usage, and activities in connection with our service"
+        ],
+        "your_rights": "Your Rights",
+    "your_rights_description": "Depending on your location, you may have certain rights regarding your personal information, including:",
+    "rights": [
+      "The right to access your personal data",
+      "The right to rectification of inaccurate personal data",
+      "The right to erasure of your personal data",
+      "The right to restrict processing of your personal data",
+      "The right to data portability",
+      "The right to object to processing of your personal data"
+    ],
+    "contact_rights": "To exercise any of these rights, please contact us at",
+    "contact_us": "Contact Us",
+    "contact_us_description": "If you have any questions about this Privacy Policy, please contact us at:"
+    },
+    "fr": {
+        "privacy_policy": "Politique de Confidentialité",
+        "last_updated": "Dernière mise à jour : 1er mars 2025",
+        "introduction": "Bank Statement Converter Ltd. s'engage à protéger votre vie privée. Cette politique de confidentialité explique comment nous collectons, utilisons, divulguons et protégeons vos informations lorsque vous utilisez notre service de conversion d'extraits de compte.",
+        "consent": "En utilisant notre service, vous acceptez les pratiques de données décrites dans cette politique. Veuillez lire attentivement cette politique pour comprendre nos pratiques concernant vos données personnelles.",
+        "information_we_collect": "Informations que nous collectons",
+        "account_information": "Informations sur le compte : Lorsque vous vous inscrivez, nous collectons votre nom, votre adresse e-mail et votre mot de passe.",
+        "payment_information": "Informations de paiement : Lorsque vous achetez un abonnement, les informations de paiement sont traitées par nos processeurs de paiement sécurisés.",
+        "service_usage": "Utilisation du service : Nous collectons des informations sur votre utilisation de notre service, y compris les statistiques de conversion.",
+        "bank_statement_data": "Données d'extraits de compte : Nous traitons temporairement les extraits de compte que vous téléchargez pour conversion.",
+        "how_we_use_your_information": "Comment nous utilisons vos informations",
+        "data_security": "Sécurité des données",
+        "data_retention": "Conservation des données",
+        "your_rights": "Vos droits",
+        "cookies": "Cookies",
+        "contact_us": "Nous contacter",
+        "your_rights": "Vos Droits",
+    "your_rights_description": "Selon votre localisation, vous pouvez avoir certains droits concernant vos informations personnelles, notamment :",
+    "rights": [
+      "Le droit d’accéder à vos données personnelles",
+      "Le droit de rectification des données personnelles inexactes",
+      "Le droit à l’effacement de vos données personnelles",
+      "Le droit de restreindre le traitement de vos données personnelles",
+      "Le droit à la portabilité des données",
+      "Le droit de s’opposer au traitement de vos données personnelles"
+    ],
+    "contact_rights": "Pour exercer l’un de ces droits, veuillez nous contacter à",
+    "contact_us": "Contactez-nous",
+    "contact_us_description": "Si vous avez des questions concernant cette politique de confidentialité, veuillez nous contacter à :"
+    },
+    "es": {
+        "privacy_policy": "Política de Privacidad",
+        "last_updated": "Última actualización: 1 de marzo de 2025",
+        "introduction": "Bank Statement Converter Ltd. se compromete a proteger su privacidad. Esta Política de Privacidad explica cómo recopilamos, usamos, divulgamos y protegemos su información cuando utiliza nuestro servicio de conversión de extractos bancarios.",
+        "consent": "Al utilizar nuestro servicio, usted acepta las prácticas de datos descritas en esta política. Lea atentamente esta política para comprender nuestras prácticas con respecto a sus datos personales.",
+        "information_we_collect": "Información que recopilamos",
+        "account_information": "Información de la cuenta: Cuando se registra, recopilamos su nombre, dirección de correo electrónico y contraseña.",
+        "payment_information": "Información de pago: Cuando compra una suscripción, la información de pago es procesada por nuestros procesadores de pago seguros.",
+        "service_usage": "Uso del servicio: Recopilamos información sobre cómo utiliza nuestro servicio, incluidas las estadísticas de conversión.",
+        "bank_statement_data": "Datos del extracto bancario: Procesamos temporalmente los extractos bancarios que sube para la conversión.",
+        "how_we_use_your_information": "Cómo utilizamos su información",
+        "data_security": "Seguridad de datos",
+        "data_retention": "Retención de datos",
+        "your_rights": "Sus derechos",
+        "cookies": "Cookies",
+        "contact_us": "Contáctenos",
+        "your_rights": "Tus Derechos",
+    "your_rights_description": "Dependiendo de tu ubicación, puedes tener ciertos derechos sobre tu información personal, incluyendo:",
+    "rights": [
+      "El derecho a acceder a tus datos personales",
+      "El derecho a la rectificación de datos personales inexactos",
+      "El derecho a la eliminación de tus datos personales",
+      "El derecho a restringir el procesamiento de tus datos personales",
+      "El derecho a la portabilidad de los datos",
+      "El derecho a oponerse al procesamiento de tus datos personales"
+    ],
+    "contact_rights": "Para ejercer cualquiera de estos derechos, contáctenos en",
+    "contact_us": "Contáctenos",
+    "contact_us_description": "Si tienes alguna pregunta sobre esta Política de Privacidad, contáctanos en:"
+    },
+    "de": {
+        "privacy_policy": "Datenschutzrichtlinie",
+        "last_updated": "Letzte Aktualisierung: 1. März 2025",
+        "introduction": "Bank Statement Converter Ltd. verpflichtet sich, Ihre Privatsphäre zu schützen. Diese Datenschutzrichtlinie erklärt, wie wir Ihre Informationen sammeln, verwenden, offenlegen und schützen, wenn Sie unseren Bankkontoauszug-Konvertierungsdienst nutzen.",
+        "consent": "Durch die Nutzung unseres Dienstes stimmen Sie den in dieser Richtlinie beschriebenen Datenpraktiken zu. Bitte lesen Sie diese Richtlinie sorgfältig durch, um unsere Praktiken in Bezug auf Ihre persönlichen Daten zu verstehen.",
+        "information_we_collect": "Informationen, die wir sammeln",
+        "account_information": "Kontoinformationen: Wenn Sie sich registrieren, erfassen wir Ihren Namen, Ihre E-Mail-Adresse und Ihr Passwort.",
+        "payment_information": "Zahlungsinformationen: Wenn Sie ein Abonnement erwerben, werden die Zahlungsinformationen von unseren sicheren Zahlungsabwicklern verarbeitet.",
+        "service_usage": "Nutzungsdaten: Wir erfassen Informationen darüber, wie Sie unseren Dienst nutzen, einschließlich Konvertierungsstatistiken.",
+        "bank_statement_data": "Kontoauszugsdaten: Wir verarbeiten vorübergehend die von Ihnen hochgeladenen Kontoauszüge zur Konvertierung.",
+        "how_we_use_your_information": "Wie wir Ihre Informationen verwenden",
+        "data_security": "Datensicherheit",
+        "data_retention": "Datenaufbewahrung",
+        "your_rights": "Ihre Rechte",
+        "cookies": "Cookies",
+        "contact_us": "Kontaktieren Sie uns",
+        "your_rights": "Ihre Rechte",
+    "your_rights_description": "Je nach Standort haben Sie bestimmte Rechte in Bezug auf Ihre persönlichen Daten, darunter:",
+    "rights": [
+      "Das Recht auf Zugriff auf Ihre persönlichen Daten",
+      "Das Recht auf Berichtigung unrichtiger personenbezogener Daten",
+      "Das Recht auf Löschung Ihrer persönlichen Daten",
+      "Das Recht, die Verarbeitung Ihrer personenbezogenen Daten einzuschränken",
+      "Das Recht auf Datenübertragbarkeit",
+      "Das Recht, der Verarbeitung Ihrer personenbezogenen Daten zu widersprechen"
+    ],
+    "contact_rights": "Um eines dieser Rechte auszuüben, kontaktieren Sie uns bitte unter",
+    "contact_us": "Kontaktieren Sie uns",
+    "contact_us_description": "Wenn Sie Fragen zu dieser Datenschutzrichtlinie haben, kontaktieren Sie uns bitte unter:"
+    }
+    
+}
