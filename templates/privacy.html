@@ -6,77 +6,32 @@
         <div class="col-lg-10 mx-auto">
             <div class="card shadow-sm">
                 <div class="card-body p-5">
-                    <h1 class="text-center text-purple mb-4">Privacy Policy</h1>
-                    <p class="text-muted text-center mb-5">Last updated: March 1, 2025</p>
+                    <h1 class="text-center text-purple mb-4">{{ text['privacy_policy'] }}</h1>
+                    <p class="text-muted text-center mb-5">{{ text['last_updated'] }}</p>
                     
                     <div class="mb-5">
                         <h2 class="h4 mb-3">Introduction</h2>
-                        <p>Bank Statement Converter Ltd. is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our bank statement conversion service.</p>
-                        <p>By using our service, you consent to the data practices described in this policy. Please read this policy carefully to understand our practices regarding your personal data.</p>
+                        <p>{{ text['introduction'] }}.</p>
+                        <p>{{ text['consent'] }}.</p>
                     </div>
                     
                     <div class="mb-5">
-                        <h2 class="h4 mb-3">Information We Collect</h2>
-                        <p>We collect the following types of information:</p>
+                        <h2 class="h4 mb-3">{{ text['your_rights'] }}</h2>
+                        <p>{{ text['your_rights_description'] }}:</p>
                         <ul>
-                            <li><strong>Account Information:</strong> When you register, we collect your name, email address, and password.</li>
-                            <li><strong>Payment Information:</strong> When you purchase a subscription, payment information is processed by our secure payment processors.</li>
-                            <li><strong>Service Usage:</strong> We collect information on how you use our service, including conversion statistics.</li>
-                            <li><strong>Bank Statement Data:</strong> We temporarily process the bank statements you upload for conversion.</li>
+                            <li>{{ text['rights'][0] }}</li>
+                            <li>{{ text['rights'][1] }}</li>
+                            <li>{{ text['rights'][2] }}</li>
+                            <li>{{ text['rights'][3] }}</li>
+                            <li>{{ text['rights'][4] }}</li>
+                            <li>{{ text['rights'][5] }}</li>
                         </ul>
-                    </div>
-                    
-                    <div class="mb-5">
-                        <h2 class="h4 mb-3">How We Use Your Information</h2>
-                        <p>We use the information we collect to:</p>
-                        <ul>
-                            <li>Provide, maintain, and improve our services</li>
-                            <li>Process transactions and send related information</li>
-                            <li>Respond to comments, questions, and customer service requests</li>
-                            <li>Send technical notices, updates, security alerts, and support messages</li>
-                            <li>Monitor and analyze trends, usage, and activities in connection with our service</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="mb-5">
-                        <h2 class="h4 mb-3">Data Security</h2>
-                        <p>We implement appropriate technical and organizational measures to protect your personal data against unauthorized or unlawful processing, accidental loss, destruction, or damage.</p>
-                        <p>Your bank statements are processed securely, and all uploaded files are automatically deleted from our servers after processing is complete or within 24 hours, whichever comes first.</p>
-                    </div>
-                    
-                    <div class="mb-5">
-                        <h2 class="h4 mb-3">Data Retention</h2>
-                        <p>We retain your personal information only for as long as is necessary for the purposes set out in this Privacy Policy. We will retain and use your information to the extent necessary to comply with our legal obligations, resolve disputes, and enforce our policies.</p>
-                    </div>
-                    
-                    <div class="mb-5">
-                        <h2 class="h4 mb-3">Your Rights</h2>
-                        <p>Depending on your location, you may have certain rights regarding your personal information, including:</p>
-                        <ul>
-                            <li>The right to access your personal data</li>
-                            <li>The right to rectification of inaccurate personal data</li>
-                            <li>The right to erasure of your personal data</li>
-                            <li>The right to restrict processing of your personal data</li>
-                            <li>The right to data portability</li>
-                            <li>The right to object to processing of your personal data</li>
-                        </ul>
-                        <p>To exercise any of these rights, please contact us at <a href="mailto:support@bankstatementconverter.online">support@bankstatementconverter.online</a>.</p>
-                    </div>
-                    
-                    <div class="mb-5">
-                        <h2 class="h4 mb-3">Cookies</h2>
-                        <p>We use cookies and similar tracking technologies to track activity on our service and store certain information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent.</p>
-                    </div>
-                    
-                    <div class="mb-5">
-                        <h2 class="h4 mb-3">Changes to This Privacy Policy</h2>
-                        <p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date.</p>
-                        <p>You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.</p>
+                        <p>{{ text['contact_rights'] }} <a href="mailto:support@bankstatementconverter.online">support@bankstatementconverter.online</a>.</p>
                     </div>
                     
                     <div>
-                        <h2 class="h4 mb-3">Contact Us</h2>
-                        <p>If you have any questions about this Privacy Policy, please contact us at:</p>
+                        <h2 class="h4 mb-3">{{ text['contact_us'] }}</h2>
+                        <p>{{ text['contact_us_description'] }}:</p>
                         <p><a href="mailto:support@bankstatementconverter.online">support@bankstatementconverter.online</a></p>
                     </div>
                 </div>
