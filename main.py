@@ -19,6 +19,14 @@ from functools import wraps
 from dotenv import load_dotenv
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import StringField, PasswordField, BooleanField
+from translations import translations
+from translations_about import translations_about
+from translations_dashboard import translations_dashboard
+from translations_contact import translations_contact
+from translations_privacy import translations_privacy
+from translations_register import translations_register
+from translations_signin import translations_signin
+from translations_price import translations_price
 from helpers import get_user_conversions,update_user_conversions,get_conversion_context,validate_and_process_pdf
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 from datetime import datetime
@@ -265,13 +273,22 @@ def test_endpoint():
         "message": "The API is working correctly!"
     }
 
+@app.route("/set_lang/<language>")
+def set_language(language):
+    if language in translations:
+        session["lang"] = language  
+    referrer = request.referrer 
+    return redirect(referrer)
+    
 
 @app.route('/')
 def home():
     user_conversions = get_user_conversions()
+    lang = session.get("lang", "en")  
+    text = translations.get(lang, translations["en"])
     
-    # Pass the data to the template
     return render_template('index.html', 
+                           text = text,
                          remaining_conversions=user_conversions.get('remaining_conversions'),
                          conversions_reset_time=user_conversions.get('conversions_reset_time'))
 
@@ -439,13 +456,16 @@ def create_premium_subscription():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    lang = session.get("lang", "en")
+    text = translations_register.get(lang, translations_register["en"])
+    
     form = RegistrationForm()
     
     if request.method == 'POST':
         # Form validation
         if not form.validate_on_submit():
             flash("Please correct the highlighted fields.", 'error')
-            return render_template('register.html', form=form)
+            return render_template('register.html', form=form,text=text)
 
         # Get validated form data
         email = form.email.data.lower().strip()  # Normalize email
@@ -456,7 +476,7 @@ def register():
                        password):
             flash("Password must contain at least 8 characters, "
                   "including uppercase, lowercase, number and special character.", 'error')
-            return render_template('register.html', form=form)
+            return render_template('register.html', form=form,text=text)
 
         try:
             # Check if email exists
@@ -465,7 +485,7 @@ def register():
             
             if any(doc_ref):
                 flash("Email already in use. Please use a different email.", 'error')
-                return render_template('register.html', form=form)
+                return render_template('register.html', form=form,text=text)
 
             # Generate unique ID and token
             user_id = str(uuid.uuid4())
@@ -506,14 +526,17 @@ def register():
 
         except Exception as e:
             flash(f"An error occurred: {str(e)}", 'error')
-            return render_template('register.html', form=form)
+            return render_template('register.html', form=form,text=text)
 
-    return render_template('register.html', form=form)
+    return render_template('register.html', form=form,text=text)
 
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def signin():
+    lang = session.get("lang", "en")
+    text = translations_signin.get(lang, translations_signin["en"])
+    
     form = LoginForm()
     
     if request.method == 'POST':
@@ -572,14 +595,14 @@ def signin():
                     print("User not found")
                     flash("User not found. Please try again.", 'error')
                 
-                return render_template('signin.html', form=form)
+                return render_template('signin.html', form=form,text=text)
             
             except Exception as e:
                 print(f"Error during login: {str(e)}")
                 flash("Login failed. Please try again.", 'error')
-                return render_template('signin.html', form=form)
+                return render_template('signin.html', form=form,text=text)
     
-    return render_template('signin.html', form=form)
+    return render_template('signin.html', form=form,text=text)
 
 
 @app.route("/config")
@@ -799,6 +822,9 @@ def logout():
 
 @app.route('/pricing', methods=['GET'])
 def pricing():
+    lang = session.get("lang", "en")
+    text = translations_price.get(lang, translations_price["en"])
+    
     try:
         # First, render the pricing page for all users
         context = {
@@ -837,27 +863,34 @@ def pricing():
                 
                 context.update({
                     'user_plan': user_data.get('subscription', {}).get('plan'),
-                    'subscription_status': subscription_status
+                    'subscription_status': subscription_status,
+                    'text':text
                 })
         
         return render_template('pricing.html', **context)
     
     except Exception as e:
-        return render_template('pricing.html', error=str(e))
+        return render_template('pricing.html', text=text)
 
 
 @app.route('/about', methods=['GET'])
 def about():
     """Endpoint that renders an HTML template."""
-    return render_template('about.html')
+    lang = session.get("lang", "en")
+    text = translations_about.get(lang, translations_about["en"])
+    return render_template('about.html',text=text)
 
 
 @app.route('/contact', methods=['GET'])
 def contact():
     """Endpoint that renders an HTML template."""
-    return render_template('contact.html')
+    lang = session.get("lang", "en")
+    text = translations_contact.get(lang, translations_contact["en"])
+    return render_template('contact.html',text=text)
 
 
 @app.route('/privacy', methods=['GET'])
 def privacy():
-    return render_template('privacy.html')
+    lang = session.get("lang", "en")
+    text = translations_privacy.get(lang, translations_privacy["en"])
+    return render_template('privacy.html',text=text)
