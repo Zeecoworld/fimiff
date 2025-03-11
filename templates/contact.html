@@ -6,17 +6,17 @@
         <div class="col-lg-8 mx-auto">
             <div class="card shadow-sm">
                 <div class="card-body p-5">
-                    <h1 class="text-center text-purple mb-4">Contact Us</h1>
-                    <p class="lead text-center mb-5">We're here to help with all your bank statement conversion needs.</p>
+                    <h1 class="text-center text-purple mb-4">{{ text['contact_us'] }}</h1>
+                    <p class="lead text-center mb-5">{{ text['contact_description'] }}.</p>
                     
                     <div class="row mb-5">
                         <div class="col-md-6 mb-4 mb-md-0">
                             <div class="card h-100 border-0 bg-light">
                                 <div class="card-body text-center p-4">
                                     <i class="fas fa-envelope fa-3x text-purple mb-3"></i>
-                                    <h3 class="h5 mb-3">Email Support</h3>
-                                    <p class="mb-3">For inquiries and technical support:</p>
-                                    <a href="mailto:support@bankstatementconverter.online" class="btn btn-purple">Support (Click here)</a>
+                                    <h3 class="h5 mb-3">{{ text['email_support'] }}</h3>
+                                    <p class="mb-3">{{ text['email_support_description'] }}</p>
+                                    <a href="mailto:support@bankstatementconverter.online" class="btn btn-purple">{{ text['support_button'] }}</a>
                                 </div>
                             </div>
                         </div>
@@ -24,8 +24,8 @@
                             <div class="card h-100 border-0 bg-light">
                                 <div class="card-body text-center p-4">
                                     <i class="fas fa-clock fa-3x text-purple mb-3"></i>
-                                    <h3 class="h5 mb-3">Response Time</h3>
-                                    <p>We strive to respond to all inquiries within 24 hours during business days.</p>
+                                    <h3 class="h5 mb-3">{{ text['response_time'] }}</h3>
+                                    <p>{{ text['response_time_description'] }}.</p>
                                 </div>
                             </div>
                         </div>
@@ -34,9 +34,9 @@
             </div>
             
             <div class="text-center mt-5">
-                <p class="text-muted">The world's most trusted bank statement converter</p>
+                <p class="text-muted">{{ text['footer_title'] }}</p>
                 <p class="small text-muted">
-                    Easily convert PDF bank statements from 1000s of banks worldwide into clean Excel (XLS) format.
+                    {{ text['footer_description'] }}.
                 </p>
             </div>
         </div>
