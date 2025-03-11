@@ -42,8 +42,8 @@
             <div class="col-md-8">
                 <div class="login-card">
                     <div class="section-title text-center mb-4">
-                        <h2>Sign In to Your Account</h2>
-                        <p>Access your conversions and settings</p>
+                        <h2>{{ text['title'] }}</h2>
+                        <p>{{ text['subtitle'] }}</p>
                     </div>
                     <form class="login-form" action="" method="post">
                         {{ form.hidden_tag() }}  <!-- CSRF protection -->
@@ -59,17 +59,18 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
+                            <label for="email" class="form-label">{{ text['email_label'] }}</label>
                             {{ form.email(class_='form-control',
-                                       placeholder='Enter email address') }}
+                                       placeholder='Enter your email address') }}
                             {% for error in form.email.errors %}
                             <span class="error">{{ error }}</span>
                             {% endfor %}
                         </div>
 
                         <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            {{ form.password(class_='form-control') }}
+                            <label for="password" class="form-label">{{ text['password_label'] }}</label>
+                            {{ form.password(class_='form-control',
+                                           placeholder='Enter your password') }}
                             {% for error in form.password.errors %}
                             <span class="error">{{ error }}</span>
                             {% endfor %}
@@ -79,18 +80,18 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="form-check">
                                     {{ form.remember_me(class_='form-check-input') }}
-                                    <label class="form-check-label" for="remember_me">Remember me</label>
+                                    <label class="form-check-label" for="remember_me">{{ text['remember_me'] }}</label>
                                 </div>
-                                <a href="#" class="login-link">Forgot Password?</a>
+                                <a href="#" class="login-link">{{ text['forgot_password'] }}?</a>
                             </div>
                         </div>
 
                         <div class="d-grid gap-2">
-                            <button type="submit" class="cta-button">Sign In</button>
+                            <button type="submit" class="cta-button">{{ text['sign_in_button'] }}</button>
                         </div>
                     </form>
                     <div class="text-center mt-4">
-                        <p>Don't have an account? <a href="{{ url_for('register') }}" class="login-link">Sign Up</a></p>
+                        <p>{{ text['no_account'] }} <a href="{{ url_for('register') }}" class="login-link">{{ text['sign_up'] }}</a></p>
                     </div>
                 </div>
             </div>
@@ -103,25 +104,31 @@
 <section class="faq-section">
     <div class="container">
         <div class="section-title">
-            <h2>Sign In Help</h2>
+            <h2>{{ text['help_title'] }}</h2>
         </div>
         <div class="row">
             <div class="col-md-6 mb-4">
                 <div class="faq-item">
-                    <h4>Account locked out?</h4>
-                    <p>Try signing in again after a few minutes. Contact support if issues persist.</p>
+                    <h4>Forgot your password?</h4>
+                    <p>Click the "Forgot Password" link below the password field to reset your password.</p>
                 </div>
             </div>
             <div class="col-md-6 mb-4">
                 <div class="faq-item">
-                    <h4>Using a new device?</h4>
-                    <p>You may need to verify your identity through email when signing in from a new device.</p>
+                    <h4>{{ text['account_locked'] }}?</h4>
+                    <p>{{ text['account_locked_description'] }}.</p>
                 </div>
             </div>
             <div class="col-md-6 mb-4">
                 <div class="faq-item">
-                    <h4>Remember me not working?</h4>
-                    <p>Clear your browser cache and cookies, then try signing in again.</p>
+                    <h4>{{ text['new_device'] }}?</h4>
+                    <p>{{ text['new_device_description'] }}.</p>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="faq-item">
+                    <h4>{{ text['remember_me_issue'] }}?</h4>
+                    <p>{{ text['remember_me_description'] }}.</p>
                 </div>
             </div>
         </div>
