@@ -42,8 +42,8 @@
             <div class="col-md-8">
                 <div class="register-card">
                     <div class="section-title text-center mb-4">
-                        <h2>Create Your Free Account</h2>
-                        <p>Get access to 1 daily conversions and enhanced formatting options</p>
+                        <h2>{{ text['title'] }}</h2>
+                        <p>{{ text['description'] }}</p>
                     </div>
                     <form class="registration-form" action="" method="POST">
                         {{ form.hidden_tag() }}
@@ -83,7 +83,7 @@
                             {{ form.email(class_='form-control',
                                        type='email',
                                        placeholder=form.email.description) }}
-                            <div class="form-text">We'll never share your email with anyone else.</div>
+                            <div class="form-text">{{ text['email_note'] }}.</div>
                             {% for error in form.email.errors %}
                             <span class="error">{{ error }}</span>
                             {% endfor %}
@@ -116,11 +116,11 @@
                         </div>
 
                         <div class="d-grid gap-2">
-                            <button type="submit" class="cta-button">Create Account</button>
+                            <button type="submit" class="cta-button">{{ text['create_account'] }}</button>
                         </div>
                     </form>
                     <div class="text-center mt-4">
-                        <p>Already have an account? <a href="{{ url_for('signin') }}" class="login-link">Log In</a></p>
+                        <p>{{ text['already_have_account'] }}? <a href="{{ url_for('signin') }}" class="login-link">{{ text['login'] }}</a></p>
                     </div>
                 </div>
             </div>
