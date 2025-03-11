@@ -55,7 +55,7 @@
                             <li>{{ text['premium_features'] }}s</li>
                             <li>Multiple file formats</li>
                         </ul>
-                    {% if status != 'premium' %}
+                    {% if user_plan != 'premium' %}
                         <button id="submitBtn" type="submit" class="cta-button">{{ text['choose_plan'] }}</button>
                     {% endif %}
                     </div>
