@@ -38,7 +38,7 @@ p {
     <div class="subscription-info">
         <h2>{{ text['subscription_details'] }}</h2>
         <p>{{ text['type'] }}: {{ user_data.subscription.type }}</p>
-        <p>{{ text['status'] }}</p>: {% if user_data.subscription.isActive %}Active{% else %}Inactive{% endif %}</p>
+        <p>{{ text['status'] }}: {% if user_data.subscription.isActive %}Active{% else %}Inactive{% endif %}</p>
     </div>
 </div>
 {% endblock %}
