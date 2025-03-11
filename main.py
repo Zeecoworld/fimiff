@@ -21,7 +21,7 @@ from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import StringField, PasswordField, BooleanField
 from translations import translations
 from translations_about import translations_about
-# from translations_dashboard import translations_dashboard
+from translations_dashboard import translations_dashboard
 from translations_contact import translations_contact
 from translations_privacy import translations_privacy
 from translations_register import translations_register
@@ -780,6 +780,9 @@ def dashboard():
     Display user dashboard with profile and subscription information.
     Requires user to be authenticated.
     """
+    lang = session.get("lang", "en")
+    text = translations_dashboard.get(lang, translations_dashboard["en"])
+    
     if 'user_id' not in session:
         flash("Please login to access the dashboard.", 'success')
         return redirect(url_for('signin'))
@@ -806,7 +809,7 @@ def dashboard():
             }
         }
 
-        return render_template('dashboard.html', user_data=formatted_data)
+        return render_template('dashboard.html', user_data=formatted_data,text=text)
 
     except Exception as e:
         flash(f"An error occurred: {str(e)}", 'error')
