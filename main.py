@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, session, url_for,request, flash, jsonify,send_file
+from flask import Flask, render_template, redirect, session, url_for,request, flash, jsonify,send_file,Response
 from werkzeug.security import generate_password_hash,check_password_hash
 from werkzeug.utils import secure_filename
 import secrets
@@ -183,6 +183,18 @@ def time_diff(timestamp):
         time_str = f"{minutes} minutes"
     
     return time_str
+
+
+@app.route('/sitemap_site.xml', methods=['GET'])
+def sitemap():
+    # Only include the home endpoint
+    home_url = url_for('home', _external=True)
+    pages = [{
+        "loc": home_url,
+    }]
+    
+    sitemap_xml = render_template('sitemap_template.xml', pages=pages)
+    return Response(sitemap_xml, mimetype='application/xml')
 
 
 def send_verification_email(email, verification_link, first_name, uid):
