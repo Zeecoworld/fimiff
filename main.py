@@ -26,7 +26,7 @@ from translations_contact import translations_contact
 from translations_privacy import translations_privacy
 from translations_register import translations_register
 from translations_signin import translations_signin
-from translations_price import translations_price
+from translations_pricing import translations_price
 from helpers import get_user_conversions,update_user_conversions,get_conversion_context,validate_and_process_pdf
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 from datetime import datetime
