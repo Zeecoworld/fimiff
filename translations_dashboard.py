@@ -1,6 +1,6 @@
 
 transaction_dashboard = {
-  {
+
   "en": {
     "profile_information": "Profile Information",
     "first_name": "First Name",
@@ -44,6 +44,6 @@ transaction_dashboard = {
     "status": "Status",
     "premium": "Premium",
     "active": "Aktiv"
-  }
+  },
 }
-}
+
