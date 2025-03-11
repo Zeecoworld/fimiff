@@ -1,5 +1,5 @@
 
-transactions_dashboard = {
+translations_dashboard = {
 
   "en": {
     "profile_information": "Profile Information",
