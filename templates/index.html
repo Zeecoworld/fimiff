@@ -57,17 +57,16 @@
     color: #4CAF50;
 }
 </style>
-
 <section class="hero-section" style="margin-top: 70px;">
     <div class="container">
         <div class="hero-content">
-            <h1>The world's most trusted bank statement converter</h1>
-            <p class="mb-5">Easily convert PDF bank statements from 1000s of banks worldwide into clean Excel (XLS) format.</p>
+            <h1>{{ text['title'] }}</h1>
+            <p>{{ text['description'] }}</p>
             <div class="upload-area" id="dropZone">
                 <form id="uploadForm" method="POST" enctype="multipart/form-data">
                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <label for="pdf_file" class="cta-button {% if remaining_conversions == 0 %}disabled{% endif %}">
-                        Click here to convert a PDF!
+                        {{ text['button'] }}
                         <input type="file"
                             id="pdf_file"
                             name="pdf_file"
@@ -75,7 +74,7 @@
                             style="display: none;"
                             required>
                     </label>
-                  <span class="file-name" id="fileName"></span>
+                  <span class="file-name" id="fileName">No file selected</span>
                     <div class="progress-bar" id="progressContainer">
                         <div class="progress" id="uploadProgress"></div>
                     </div>
@@ -84,7 +83,7 @@
             </div>
             {% if remaining_conversions != None %}
             <p class="conversion-limit mt-2">
-                {% if remaining_conversions > 0 %}
+                {% if remaining_conversions > 0 %}  
                     You have {{ remaining_conversions }} conversion{{ remaining_conversions|pluralize }} remaining today
                 {% else %}
                     You've reached your daily conversion limit. Conversions will reset in {{ conversions_reset_time|time_diff }}.
