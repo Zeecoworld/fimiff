@@ -21,7 +21,7 @@ from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import StringField, PasswordField, BooleanField
 from translations import translations
 from translations_about import translations_about
-from translations_dashboard import translations_dashboard
+# from translations_dashboard import translations_dashboard
 from translations_contact import translations_contact
 from translations_privacy import translations_privacy
 from translations_register import translations_register
