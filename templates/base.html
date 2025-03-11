@@ -494,20 +494,15 @@
                     <a class="nav-link" href="{{ url_for('register') }}">Register</a>
                 </li>
                 {% endif %}
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+               <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" id="selectedLanguage">
                         English
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Arabic</a></li>
-                        <li><a class="dropdown-item" href="#">Chinese (Mandarin)</a></li>
-                        <li><a class="dropdown-item" href="#">French</a></li>
-                        <li><a class="dropdown-item" href="#">German</a></li>
-                        <li><a class="dropdown-item" href="#">Hindi</a></li>
-                        <li><a class="dropdown-item" href="#">Italian</a></li>
-                        <li><a class="dropdown-item" href="#">Japanese</a></li>
-                        <li><a class="dropdown-item" href="#">Portuguese</a></li>
-                        <li><a class="dropdown-item" href="#">Spanish</a></li>
+                        <li><a class="dropdown-item" onclick="changeLanguage('en')">English</a></li>
+                        <li><a class="dropdown-item" onclick="changeLanguage('fr')">French</a></li>
+                        <li><a class="dropdown-item" onclick="changeLanguage('de')">German</a></li>
+                        <li><a class="dropdown-item" onclick="changeLanguage('es')">Spanish</a></li>
                     </ul>
                 </li>
             </ul>
@@ -601,6 +596,30 @@
             animateOnScroll(document.querySelectorAll('.feature-card'), 'fadeInUp');
             animateOnScroll(document.querySelectorAll('.pricing-card'), 'fadeInUp');
         });
+        
+        function changeLanguage(langCode) {
+        // Get the dropdown toggle element
+        const selectedLanguage = document.getElementById("selectedLanguage");
+        // Map language codes to names
+        const languages = {
+            'en': 'English',
+            'ar': 'Arabic',
+            'zh': 'Chinese (Mandarin)',
+            'fr': 'French',
+            'de': 'German',
+            'hi': 'Hindi',
+            'it': 'Italian',
+            'ja': 'Japanese',
+            'pt': 'Portuguese',
+            'es': 'Spanish'
+        };
+    
+        // Update the dropdown toggle text
+        if (languages[langCode]) {
+            selectedLanguage.textContent = languages[langCode];
+        }
+        window.location.href = `/set_lang/${langCode}`;
+    }
     </script>
     {% block extra_js %}{% endblock %}
 </body>
