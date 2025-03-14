@@ -599,7 +599,7 @@ def signin():
                         
                         flash("Login successful!", 'success')
                         print(f"Session after login: {dict(session)}")
-                        return redirect(url_for('dashboard'))
+                        return redirect(url_for('home'))
                     else:
                         print("Password verification failed")
                         flash("Invalid email or password. Please try again.", 'error')
