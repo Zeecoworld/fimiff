@@ -420,7 +420,7 @@ def verify_email(token, uid):
 def create_free_subscription():
     """Create a free subscription plan with basic PDF conversion features"""
     return {
-        'plan': 'free',
+        'plan': 'Free',
         'prompts_limit': 1,
         'features': [
             '1 page per day',
@@ -442,7 +442,7 @@ def create_free_subscription():
 def create_premium_subscription():
     """Create a premium subscription plan with advanced features"""
     return {
-        'plan': 'premium',
+        'plan': 'Premium',
         'prompts_limit': 50,
         'features': [
             '50 pages per day',
