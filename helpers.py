@@ -119,94 +119,48 @@ def validate_and_process_pdf(file):
             page_count = len(pdf.pages)
             
             # Get user's subscription status
-            subscription_status = 'free'  # Default
             if 'user_id' in session:
-                try:
-                    user_ref = db.collection('users').document(session['user_id'])
-                    user_doc = user_ref.get()
-                    if user_doc.exists:
-                        user_data = user_doc.to_dict()
-                        subscription_status = user_data.get('subscription', {}).get('status', 'free')
-                except Exception as e:
-                    print(f"Error getting user subscription: {e}")
+                user_ref = db.collection('users').document(session['user_id'])
+                user_doc = user_ref.get()
+                if user_doc.exists:
+                    subscription_status = user_doc.to_dict().get('subscription', {}).get('status')
+                else:
                     subscription_status = 'free'
+            else:
+                subscription_status = 'free'
             
             # Check page count limits
-            if subscription_status == 'free' and page_count > 10:
-                return False, "Free users are limited to 10 pages per PDF", None
+            if subscription_status == 'free' and page_count > 15:
+                return False, "Free users are limited to 15 pages per PDF", None
             elif subscription_status == 'premium' and page_count > 50:
                 return False, "Premium users are limited to 50 pages per PDF", None
             
-            # Check daily limits for premium users - ONLY if user is logged in
-            if subscription_status == 'premium' and 'user_id' in session:
-                try:
-                    # Get today's date as string in YYYY-MM-DD format
-                    today = datetime.now().strftime('%Y-%m-%d')
-                    
-                    # Check daily usage
-                    daily_usage_ref = db.collection('daily_usage').document(f"{session['user_id']}-{today}")
-                    daily_usage_doc = daily_usage_ref.get()
-                    
-                    current_pages_used = 0
-                    if daily_usage_doc.exists:
-                        daily_usage_data = daily_usage_doc.to_dict()
-                        # Safely get pages_used and ensure it's an integer
-                        pages_used_value = daily_usage_data.get('pages_used', 0)
-                        if isinstance(pages_used_value, (int, float)):
-                            current_pages_used = int(pages_used_value)
-                        else:
-                            current_pages_used = 0
-                    
-                    if current_pages_used + page_count > 50:
-                        return False, f"Daily page limit exceeded. You have used {current_pages_used}/50 pages today.", None
-                    
-                    # Update daily usage - Multiple fallback approaches for timestamp
-                    update_data = {
-                        'user_id': session['user_id'],
-                        'date': today,
-                        'pages_used': current_pages_used + page_count
-                    }
-                    
-                    # Try different timestamp approaches
-                    try:
-                        # Approach 1: Try SERVER_TIMESTAMP
-                        from firebase_admin import firestore
-                        update_data['updated_at'] = firestore.SERVER_TIMESTAMP
-                    except (ImportError, AttributeError):
-                        try:
-                            # Approach 2: Try google.cloud.firestore SERVER_TIMESTAMP
-                            from google.cloud.firestore import SERVER_TIMESTAMP
-                            update_data['updated_at'] = SERVER_TIMESTAMP
-                        except (ImportError, AttributeError):
-                            try:
-                                # Approach 3: Try Timestamp.now()
-                                from google.cloud.firestore import Timestamp
-                                update_data['updated_at'] = Timestamp.now()
-                            except (ImportError, AttributeError):
-                                # Approach 4: Use ISO string as fallback
-                                update_data['updated_at'] = datetime.now().isoformat()
-                    
-                    # Perform the database update
-                    daily_usage_ref.set(update_data, merge=True)
-                    
-                except Exception as e:
-                    print(f"Error updating daily usage: {e}")
-                    # For debugging - log the full error details
-                    import traceback
-                    print(f"Full traceback: {traceback.format_exc()}")
-                    # Continue processing even if usage tracking fails - don't block the user
-                    pass
+            # Check daily limits
+            if subscription_status == 'premium':
+                # Get today's date as STRING (this is the key fix)
+                today = datetime.now().strftime('%Y-%m-%d')
+                
+                # Check daily usage
+                daily_usage_ref = db.collection('daily_usage').document(f"{session['user_id']}-{today}")
+                daily_usage_doc = daily_usage_ref.get()
+                daily_usage = daily_usage_doc.to_dict() if daily_usage_doc.exists else {}
+                
+                if daily_usage and daily_usage.get('pages_used', 0) + page_count > 50:
+                    return False, "Daily page limit exceeded", None
+                
+                # Update daily usage
+                daily_usage_ref.set({
+                    'user_id': session['user_id'],
+                    'date': today,  # Now this is a string, not a date object
+                    'pages_used': (daily_usage.get('pages_used', 0) + page_count)
+                }, merge=True)
             
             # Process tables
             tables = []
-            for page_num, page in enumerate(pdf.pages):
-                try:
-                    page_tables = page.extract_tables()
-                    if page_tables:
-                        tables.extend(page_tables)
-                except Exception as e:
-                    print(f"Error extracting tables from page {page_num + 1}: {e}")
-                    continue
+            for page in pdf.pages:
+                page_tables = page.extract_tables()
+                if page_tables:
+                    tables.extend(page_tables)
             
             if not tables:
                 return False, "No tables found in the PDF", None
@@ -214,83 +168,46 @@ def validate_and_process_pdf(file):
             # Clean and merge tables
             headers = []
             all_rows = []
-            
-            for table_num, table in enumerate(tables):
+            for table in tables:
                 if not table:
                     continue
                 
-                try:
-                    cleaned_table = []
-                    for row in table:
-                        # Handle None values and convert to string
-                        cleaned_row = []
-                        for cell in row:
-                            if cell is None:
-                                cleaned_row.append("")
-                            else:
-                                # Strip whitespace and convert to string
-                                cell_str = str(cell).strip()
-                                cleaned_row.append(cell_str)
-                        cleaned_table.append(cleaned_row)
-                    
-                    # Set headers from first table's first row
-                    if not headers and cleaned_table:
-                        headers = cleaned_table[0]
-                        # Add remaining rows from first table
-                        if len(cleaned_table) > 1:
-                            all_rows.extend(cleaned_table[1:])
-                    else:
-                        # Process subsequent tables
-                        for row in cleaned_table:
-                            # Skip empty rows
+                cleaned_table = []
+                for row in table:
+                    cleaned_row = [str(cell).strip() if cell is not None else "" for cell in row]
+                    cleaned_table.append(cleaned_row)
+                
+                if not headers and cleaned_table:
+                    headers = cleaned_table[0]
+                    all_rows.extend(cleaned_table[1:])
+                else:
+                    for row in cleaned_table:
+                        if len(headers) > 0:
                             if all(cell == "" for cell in row):
                                 continue
-                            
-                            # Skip header-like rows (contain header text)
-                            if len(headers) > 0:
-                                is_header_row = False
-                                for i, (header, cell) in enumerate(zip(headers, row)):
-                                    if header and cell and header.lower() in cell.lower():
-                                        is_header_row = True
-                                        break
-                                
-                                if is_header_row:
-                                    continue
-                            
-                            # Normalize row length to match headers
-                            if len(headers) > 0:
-                                if len(row) < len(headers):
-                                    row.extend([""] * (len(headers) - len(row)))
-                                elif len(row) > len(headers):
-                                    row = row[:len(headers)]
-                            
+                            if any(h.lower() in cell.lower() for h, cell in zip(headers, row) if h and cell):
+                                continue
+                            if len(row) < len(headers):
+                                row.extend([""] * (len(headers) - len(row)))
+                            elif len(row) > len(headers):
+                                row = row[:len(headers)]
                             all_rows.append(row)
-                            
-                except Exception as e:
-                    print(f"Error processing table {table_num + 1}: {e}")
-                    continue
             
-            # Create CSV output
-            try:
-                csv_output = io.StringIO()
-                writer = csv.writer(csv_output)
-                
-                # Write headers if available
-                if headers:
-                    writer.writerow(headers)
-                
-                # Write data rows
-                writer.writerows(all_rows)
-                
-                # Convert to BytesIO for file download
-                csv_bytes = BytesIO()
-                csv_bytes.write(csv_output.getvalue().encode('utf-8'))
-                csv_bytes.seek(0)
-                
-                return True, "PDF processed successfully", csv_bytes
-                
-            except Exception as e:
-                return False, f"Error creating CSV: {str(e)}", None
+            # Create a StringIO object for the CSV output, not BytesIO
+            csv_output = io.StringIO()
+            writer = csv.writer(csv_output)
+            
+            # Write the merged data to CSV
+            if headers:
+                writer.writerow(headers)
+            writer.writerows(all_rows)
+            
+            # Convert to BytesIO for returning as a file
+            csv_bytes = BytesIO()
+            csv_bytes.write(csv_output.getvalue().encode('utf-8'))
+            csv_bytes.seek(0)
+            
+            return True, "PDF processed successfully", csv_bytes
     
     except Exception as e:
         return False, f"Error processing PDF: {str(e)}", None
