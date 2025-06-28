@@ -34,34 +34,41 @@ else:
 
 
 def add_days_to_timestamp(timestamp=None, days=30):
+    """Fixed version that returns string instead of timestamp float"""
     dt = datetime.fromtimestamp(timestamp) if timestamp is not None else datetime.now()
     future_dt = dt + timedelta(days=days)
-    return future_dt.timestamp()
+    # Return as ISO string instead of timestamp to avoid Firestore issues
+    return future_dt.isoformat()
 
 
 def get_user_conversions():
     """Retrieve user's conversion data from database."""
     if 'user_id' in session:
         user_ref = db.collection('users').document(session['user_id'])
-        user_data = user_ref.get().to_dict()
-        plan = user_data.get('subscription', {}).get('plan') #plan == "premium"
-        if 'conversions' not in user_data:
-            user_data['conversions'] = {
-                'remaining_conversions': 1,  
-                'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
-                'conversions_count': 0
-            }
-            user_ref.set(user_data, merge=True)
+        user_doc = user_ref.get()
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            plan = user_data.get('subscription', {}).get('plan')
             
-        return user_data.get('conversions', {
-            'remaining_conversions': 50 if plan == "premium" else 1,
-            'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
-            'conversions_count': 0
-        })
+            if 'conversions' not in user_data:
+                # Use ISO string for reset time instead of timestamp
+                reset_time = (datetime.now() + timedelta(days=30)).isoformat()
+                user_data['conversions'] = {
+                    'remaining_conversions': 1,  
+                    'conversions_reset_time': reset_time,
+                    'conversions_count': 2
+                }
+                user_ref.set(user_data, merge=True)
+                
+            return user_data.get('conversions', {
+                'remaining_conversions': 50 if plan == "premium" else 1,
+                'conversions_reset_time': (datetime.now() + timedelta(days=30)).isoformat(),
+                'conversions_count': 0
+            })
     
     return {
         'remaining_conversions': 1,
-        'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
+        'conversions_reset_time': (datetime.now() + timedelta(days=30)).isoformat(),
         'conversions_count': 0
     }
 
@@ -79,6 +86,7 @@ def update_user_conversions(conversions):
         }, merge=True)
     session['conversions'] = conversions
 
+
 def get_conversion_context():
     """Prepare conversion data for template rendering."""
     try:
@@ -93,9 +101,10 @@ def get_conversion_context():
             'conversions_count': conversions_count
         }
     except Exception as e:
+        reset_time = (datetime.now() + timedelta(days=30)).isoformat()
         return {
             'remaining_conversions': 1,
-            'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
+            'conversions_reset_time': reset_time,
             'conversions_count': 0
         }
     
@@ -119,15 +128,17 @@ def validate_and_process_pdf(file):
             page_count = len(pdf.pages)
             
             # Get user's subscription status
+            subscription_status = 'free'  # Default value
             if 'user_id' in session:
-                user_ref = db.collection('users').document(session['user_id'])
-                user_doc = user_ref.get()
-                if user_doc.exists:
-                    subscription_status = user_doc.to_dict().get('subscription', {}).get('status')
-                else:
+                try:
+                    user_ref = db.collection('users').document(session['user_id'])
+                    user_doc = user_ref.get()
+                    if user_doc.exists:
+                        user_data = user_doc.to_dict()
+                        subscription_status = user_data.get('subscription', {}).get('status', 'free')
+                except Exception as e:
+                    print(f"Error getting user subscription: {e}")
                     subscription_status = 'free'
-            else:
-                subscription_status = 'free'
             
             # Check page count limits
             if subscription_status == 'free' and page_count > 15:
@@ -135,25 +146,42 @@ def validate_and_process_pdf(file):
             elif subscription_status == 'premium' and page_count > 50:
                 return False, "Premium users are limited to 50 pages per PDF", None
             
-            # Check daily limits
-            if subscription_status == 'premium':
-                # Get today's date as STRING (this is the key fix)
-                today = datetime.now().strftime('%Y-%m-%d')
-                
-                # Check daily usage
-                daily_usage_ref = db.collection('daily_usage').document(f"{session['user_id']}-{today}")
-                daily_usage_doc = daily_usage_ref.get()
-                daily_usage = daily_usage_doc.to_dict() if daily_usage_doc.exists else {}
-                
-                if daily_usage and daily_usage.get('pages_used', 0) + page_count > 50:
-                    return False, "Daily page limit exceeded", None
-                
-                # Update daily usage
-                daily_usage_ref.set({
-                    'user_id': session['user_id'],
-                    'date': today,  # Now this is a string, not a date object
-                    'pages_used': (daily_usage.get('pages_used', 0) + page_count)
-                }, merge=True)
+            # Check daily limits for premium users
+            if subscription_status == 'premium' and 'user_id' in session:
+                try:
+                    # Get today's date as STRING (not date object)
+                    today = datetime.now().strftime('%Y-%m-%d')
+                    
+                    # Check daily usage
+                    daily_usage_ref = db.collection('daily_usage').document(f"{session['user_id']}-{today}")
+                    daily_usage_doc = daily_usage_ref.get()
+                    
+                    # Safely get existing usage
+                    current_pages_used = 0
+                    if daily_usage_doc.exists:
+                        daily_usage_data = daily_usage_doc.to_dict()
+                        if daily_usage_data:
+                            pages_used_value = daily_usage_data.get('pages_used', 0)
+                            # Ensure it's an integer
+                            current_pages_used = int(pages_used_value) if isinstance(pages_used_value, (int, float)) else 0
+                    
+                    if current_pages_used + page_count > 50:
+                        return False, f"Daily page limit exceeded. You have used {current_pages_used}/50 pages today.", None
+                    
+                    # Update daily usage - Store only simple data types
+                    update_data = {
+                        'user_id': str(session['user_id']),  # Ensure it's a string
+                        'date': today,  # Already a string
+                        'pages_used': int(current_pages_used + page_count)  # Ensure it's an integer
+                    }
+                    
+                    daily_usage_ref.set(update_data, merge=True)
+                    
+                except Exception as e:
+                    print(f"Error in daily usage tracking: {e}")
+                    import traceback
+                    print(f"Full traceback: {traceback.format_exc()}")
+                    pass
             
             # Process tables
             tables = []
@@ -210,6 +238,9 @@ def validate_and_process_pdf(file):
             return True, "PDF processed successfully", csv_bytes
     
     except Exception as e:
+        print(f"Error processing PDF: {e}")
+        import traceback
+        print(f"Full traceback: {traceback.format_exc()}")
         return False, f"Error processing PDF: {str(e)}", None
     
 
