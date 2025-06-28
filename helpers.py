@@ -131,13 +131,13 @@ def validate_and_process_pdf(file):
                     print(f"Error getting user subscription: {e}")
                     subscription_status = 'free'
             
-            # Check page count limits - Fixed the error message for free users
+            # Check page count limits
             if subscription_status == 'free' and page_count > 10:
                 return False, "Free users are limited to 10 pages per PDF", None
             elif subscription_status == 'premium' and page_count > 50:
                 return False, "Premium users are limited to 50 pages per PDF", None
             
-            # Check daily limits for premium users
+            # Check daily limits for premium users - ONLY if user is logged in
             if subscription_status == 'premium' and 'user_id' in session:
                 try:
                     # Get today's date as string in YYYY-MM-DD format
@@ -150,22 +150,52 @@ def validate_and_process_pdf(file):
                     current_pages_used = 0
                     if daily_usage_doc.exists:
                         daily_usage_data = daily_usage_doc.to_dict()
-                        current_pages_used = daily_usage_data.get('pages_used', 0)
+                        # Safely get pages_used and ensure it's an integer
+                        pages_used_value = daily_usage_data.get('pages_used', 0)
+                        if isinstance(pages_used_value, (int, float)):
+                            current_pages_used = int(pages_used_value)
+                        else:
+                            current_pages_used = 0
                     
                     if current_pages_used + page_count > 50:
                         return False, f"Daily page limit exceeded. You have used {current_pages_used}/50 pages today.", None
                     
-                    # Update daily usage
-                    daily_usage_ref.set({
+                    # Update daily usage - Multiple fallback approaches for timestamp
+                    update_data = {
                         'user_id': session['user_id'],
                         'date': today,
-                        'pages_used': current_pages_used + page_count,
-                        'updated_at': datetime.now()  # Add timestamp for tracking
-                    }, merge=True)
+                        'pages_used': current_pages_used + page_count
+                    }
+                    
+                    # Try different timestamp approaches
+                    try:
+                        # Approach 1: Try SERVER_TIMESTAMP
+                        from firebase_admin import firestore
+                        update_data['updated_at'] = firestore.SERVER_TIMESTAMP
+                    except (ImportError, AttributeError):
+                        try:
+                            # Approach 2: Try google.cloud.firestore SERVER_TIMESTAMP
+                            from google.cloud.firestore import SERVER_TIMESTAMP
+                            update_data['updated_at'] = SERVER_TIMESTAMP
+                        except (ImportError, AttributeError):
+                            try:
+                                # Approach 3: Try Timestamp.now()
+                                from google.cloud.firestore import Timestamp
+                                update_data['updated_at'] = Timestamp.now()
+                            except (ImportError, AttributeError):
+                                # Approach 4: Use ISO string as fallback
+                                update_data['updated_at'] = datetime.now().isoformat()
+                    
+                    # Perform the database update
+                    daily_usage_ref.set(update_data, merge=True)
                     
                 except Exception as e:
                     print(f"Error updating daily usage: {e}")
-                    # Continue processing even if usage tracking fails
+                    # For debugging - log the full error details
+                    import traceback
+                    print(f"Full traceback: {traceback.format_exc()}")
+                    # Continue processing even if usage tracking fails - don't block the user
+                    pass
             
             # Process tables
             tables = []
