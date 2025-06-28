@@ -132,7 +132,7 @@ def validate_and_process_pdf(file):
                 subscription_status = 'free'
             
             # Check page count limits
-            if subscription_status == 'free' and page_count > 10:
+            if subscription_status == 'free' and page_count > 1:
                 return False, "Free users are limited to 1 page per PDF", None
             elif subscription_status == 'premium' and page_count > 50:
                 return False, "Premium users are limited to 50 pages per PDF", None
