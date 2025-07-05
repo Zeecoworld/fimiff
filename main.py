@@ -321,21 +321,41 @@ def convert():
         is_valid, message, processed_file = validate_and_process_pdf(file)
         if not is_valid:
             return jsonify({'error': message}), 400
-        
     
         # Get user conversions
         user_conversions = get_user_conversions()
         
         # Update conversion tracking
         current_timestamp = int(datetime.now().timestamp())
-        reset_timestamp = user_conversions['conversions_reset_time']
+        reset_time_str = user_conversions['conversions_reset_time']
+        
+        # Convert reset time string to timestamp for comparison
+        try:
+            reset_timestamp = int(datetime.fromisoformat(reset_time_str.replace('Z', '+00:00')).timestamp())
+        except:
+            # If parsing fails, create a new reset time
+            reset_timestamp = current_timestamp - 1  # Force reset
         
         # Check if reset is needed
         if current_timestamp >= reset_timestamp:
+            # Get user's plan to determine conversion limit
+            plan = 'free'  # default
+            if 'user_id' in session:
+                try:
+                    user_ref = db.collection('users').document(session['user_id'])
+                    user_doc = user_ref.get()
+                    if user_doc.exists:
+                        user_data = user_doc.to_dict()
+                        plan = user_data.get('subscription', {}).get('plan', 'free')
+                except Exception as e:
+                    print(f"Error getting user plan: {e}")
+            
+            # Reset conversions based on plan
+            new_reset_time = (datetime.now() + timedelta(days=30)).isoformat()
             user_conversions.update({
-                'remaining_conversions': 1,
+                'remaining_conversions': 50 if plan == 'premium' else 1,
                 'conversions_count': 0,
-                'conversions_reset_time': current_timestamp.timestamp()
+                'conversions_reset_time': new_reset_time
             })
         else:
             # Check if user has remaining conversions
@@ -362,6 +382,9 @@ def convert():
         )
     
     except Exception as e:
+        import traceback
+        print(f"Error in convert route: {e}")
+        print(f"Full traceback: {traceback.format_exc()}")
         return jsonify({
             'error': str(e),
             'status': 500
