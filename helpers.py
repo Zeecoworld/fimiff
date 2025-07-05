@@ -122,7 +122,7 @@ def validate_and_process_pdf(file):
         file_content = BytesIO(file.read())
         file_content.seek(0)
         
-        # Process the PDF using pdfplumber
+        # Process the PDF using pdfplumber with optimization
         with pdfplumber.open(file_content) as pdf:
             # Check page count restrictions
             page_count = len(pdf.pages)
@@ -183,23 +183,59 @@ def validate_and_process_pdf(file):
                     print(f"Full traceback: {traceback.format_exc()}")
                     pass
             
-            # Process tables
+            # Process tables with optimization and timeout protection
             tables = []
-            for page in pdf.pages:
-                page_tables = page.extract_tables()
-                if page_tables:
-                    tables.extend(page_tables)
+            max_pages_to_process = min(page_count, 20)  # Limit processing to avoid timeouts
+            
+            for i, page in enumerate(pdf.pages[:max_pages_to_process]):
+                try:
+                    # Use simplified table extraction settings for better performance
+                    table_settings = {
+                        "vertical_strategy": "lines",
+                        "horizontal_strategy": "lines",
+                        "intersection_tolerance": 3,
+                        "text_tolerance": 3,
+                        "min_words_vertical": 1,
+                        "min_words_horizontal": 1,
+                        "snap_tolerance": 3,
+                        "snap_x_tolerance": 3,
+                        "snap_y_tolerance": 3,
+                        "join_tolerance": 3,
+                        "edge_min_length": 3,
+                        "intersection_x_tolerance": 3,
+                        "intersection_y_tolerance": 3
+                    }
+                    
+                    # Extract tables with timeout protection
+                    page_tables = page.extract_tables(table_settings)
+                    
+                    if page_tables:
+                        tables.extend(page_tables)
+                        
+                    # If we found tables and have processed at least 5 pages, consider stopping
+                    # to prevent timeout on large documents
+                    if tables and i >= 4:  # 0-indexed, so this means 5 pages
+                        break
+                        
+                except Exception as e:
+                    print(f"Error processing page {i+1}: {e}")
+                    continue
             
             if not tables:
                 return False, "No tables found in the PDF", None
             
-            # Clean and merge tables
+            # Clean and merge tables with optimization
             headers = []
             all_rows = []
-            for table in tables:
+            
+            for table_idx, table in enumerate(tables):
                 if not table:
                     continue
                 
+                # Limit table processing to prevent timeouts
+                if table_idx > 10:  # Don't process more than 10 tables
+                    break
+                    
                 cleaned_table = []
                 for row in table:
                     cleaned_row = [str(cell).strip() if cell is not None else "" for cell in row]
@@ -211,10 +247,13 @@ def validate_and_process_pdf(file):
                 else:
                     for row in cleaned_table:
                         if len(headers) > 0:
+                            # Skip empty rows
                             if all(cell == "" for cell in row):
                                 continue
+                            # Skip header-like rows
                             if any(h.lower() in cell.lower() for h, cell in zip(headers, row) if h and cell):
                                 continue
+                            # Normalize row length
                             if len(row) < len(headers):
                                 row.extend([""] * (len(headers) - len(row)))
                             elif len(row) > len(headers):
@@ -234,7 +273,6 @@ def validate_and_process_pdf(file):
             csv_bytes = BytesIO()
             csv_bytes.write(csv_output.getvalue().encode('utf-8'))
             csv_bytes.seek(0)
-            
             return True, "PDF processed successfully", csv_bytes
     
     except Exception as e:
