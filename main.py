@@ -152,37 +152,61 @@ def pluralize(value):
         return 's'
     return ''
 
+
 @app.template_filter()
 def time_diff(timestamp):
     if timestamp is None:
         return "unknown"
     
-    dt = datetime.fromtimestamp(timestamp)
     try:
-        tz = pytz.timezone(app.config['TIMEZONE'])
-        now = datetime.now(tz)
-        # Make dt timezone-aware
-        dt = dt.replace(tzinfo=tz)
-    except (TypeError, pytz.exceptions.UnknownTimeZoneError):
-        now = datetime.now()
-    
-    diff = dt - now
-    if diff.total_seconds() <= 0:
-        return "Time has passed"
-    
-    total_seconds = int(diff.total_seconds())
-    days = total_seconds // (24 * 3600)
-    hours = (total_seconds % (24 * 3600)) // 3600
-    minutes = (total_seconds % 3600) // 60
-    # Format the time string
-    if days > 0:
-        time_str = f"{days} days, {hours} hours and {minutes} minutes"
-    elif hours > 0:
-        time_str = f"{hours} hours and {minutes} minutes"
-    else:
-        time_str = f"{minutes} minutes"
-    
-    return time_str
+        # Handle both timestamp (int/float) and ISO string formats
+        if isinstance(timestamp, str):
+            # Parse ISO string - handle both with and without 'Z' suffix
+            iso_string = timestamp.replace('Z', '+00:00') if timestamp.endswith('Z') else timestamp
+            dt = datetime.fromisoformat(iso_string)
+        else:
+            # Handle numeric timestamp
+            dt = datetime.fromtimestamp(timestamp)
+        
+        # Handle timezone
+        try:
+            tz = pytz.timezone(app.config['TIMEZONE'])
+            now = datetime.now(tz)
+            
+            # Make dt timezone-aware if it isn't already
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=tz)
+            else:
+                # Convert to the app's timezone if it has a different timezone
+                dt = dt.astimezone(tz)
+        except (TypeError, pytz.exceptions.UnknownTimeZoneError):
+            now = datetime.now()
+            # Strip timezone info from dt if now is naive
+            if dt.tzinfo is not None:
+                dt = dt.replace(tzinfo=None)
+        
+        diff = dt - now
+        if diff.total_seconds() <= 0:
+            return "Time has passed"
+        
+        total_seconds = int(diff.total_seconds())
+        days = total_seconds // (24 * 3600)
+        hours = (total_seconds % (24 * 3600)) // 3600
+        minutes = (total_seconds % 3600) // 60
+        
+        # Format the time string
+        if days > 0:
+            time_str = f"{days} days, {hours} hours and {minutes} minutes"
+        elif hours > 0:
+            time_str = f"{hours} hours and {minutes} minutes"
+        else:
+            time_str = f"{minutes} minutes"
+        
+        return time_str
+        
+    except Exception as e:
+        print(f"Error in time_diff filter: {e}")
+        return "unknown"
 
 
 @app.route('/sitemap_site.xml', methods=['GET'])
