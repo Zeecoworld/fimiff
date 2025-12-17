@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, session, url_for,request, flash, jsonify
+from flask import Flask, render_template, redirect, session, url_for,request, flash, jsonify,Response
 from werkzeug.security import generate_password_hash,check_password_hash
 from werkzeug.utils import secure_filename
 import secrets
@@ -774,6 +774,11 @@ def privacy():
     """Endpoint that renders an HTML template."""
     return render_template('privacy.html')
 
-
-if __name__ == '__main__':
-    app.run(debug=True)
+@app.route('/sitemap_site.xml', methods=['GET'])
+def sitemap():
+    home_url = url_for('home', _external=True)
+    pages = [{
+        "loc": home_url,
+    }]
+    sitemap_xml = render_template('sitemap_template.xml', pages=pages)
+    return Response(sitemap_xml, mimetype='application/xml')
