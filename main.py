@@ -776,9 +776,22 @@ def privacy():
 
 @app.route('/sitemap_site.xml', methods=['GET'])
 def sitemap():
-    home_url = url_for('home', _external=True)
-    pages = [{
-        "loc": home_url,
-    }]
-    sitemap_xml = render_template('sitemap_template.xml', pages=pages)
+    pages = []
+
+    static_pages = [
+        'home',
+        'about',
+        'pricing',
+        'contact',
+        'privacy'
+    ]
+    for page in static_pages:
+        pages.append({
+            "loc": url_for(page, _external=True)
+        })
+
+    sitemap_xml = render_template(
+        'sitemap_template.xml',
+        pages=pages
+    )
     return Response(sitemap_xml, mimetype='application/xml')
