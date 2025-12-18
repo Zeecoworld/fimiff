@@ -774,10 +774,10 @@ def privacy():
     """Endpoint that renders an HTML template."""
     return render_template('privacy.html')
 
+
 @app.route('/sitemap_site.xml', methods=['GET'])
 def sitemap():
     pages = []
-
     static_pages = [
         'home',
         'about',
@@ -789,9 +789,18 @@ def sitemap():
         pages.append({
             "loc": url_for(page, _external=True)
         })
-
-    sitemap_xml = render_template(
-        'sitemap_template.xml',
-        pages=pages
-    )
+    
+    # Generate XML directly
+    xml_lines = ['<?xml version="1.0" encoding="UTF-8"?>']
+    xml_lines.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+    
+    for page in pages:
+        xml_lines.append('  <url>')
+        xml_lines.append(f'    <loc>{page["loc"]}</loc>')
+        xml_lines.append('  </url>')
+    
+    xml_lines.append('</urlset>')
+    
+    sitemap_xml = '\n'.join(xml_lines)
+    
     return Response(sitemap_xml, mimetype='application/xml')
