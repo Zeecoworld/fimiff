@@ -262,6 +262,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Create FormData for the file
         const formData = new FormData();
         formData.append('pdf_file', file);
+        
+        // Get CSRF token from the form
+        const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+        formData.append('csrf_token', csrfToken);
 
         // Simulate upload progress
         let progressValue = 0;
@@ -276,6 +280,9 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/convert', {
             method: 'POST',
             body: formData,
+            headers: {
+                'X-CSRFToken': csrfToken  // Include CSRF token in header
+            }
         })
         .then(response => {
             clearInterval(progressInterval);
