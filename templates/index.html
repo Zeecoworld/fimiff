@@ -61,6 +61,7 @@
             
             <div class="upload-area" id="dropZone">
                 <form id="uploadForm" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <label for="pdf_file" class="cta-button {% if remaining_conversions == 0 %}disabled{% endif %}">
                         Click here to convert a PDF!
                         <input type="file" 
