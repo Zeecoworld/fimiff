@@ -8,6 +8,7 @@ import os
 import re
 import json
 from datetime import datetime
+from threading import Thread
 from flask_mail import Mail, Message
 from google.cloud import firestore
 from google.oauth2 import service_account
@@ -161,6 +162,14 @@ def require_auth(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def send_async_email(app, msg):
+    """Send email asynchronously"""
+    with app.app_context():
+        try:
+            mail.send(msg)
+        except Exception as e:
+            f"Async email error: {str(e)}"
+
 
 # Create blueprint
 mail = Mail(app)
@@ -257,12 +266,8 @@ def send_verification_email(email, verification_link, first_name, uid):
         html=html_content
     )
     
-    try:
-        mail.send(msg)
-        return True
-    except Exception as e:
-        print(f"Error sending email: {e}")
-        return False
+    Thread(target=send_async_email, args=(app._get_current_object(), msg)).start()
+    return True  
 
 def add_days_to_timestamp(timestamp=None, days=30):
     dt = datetime.fromtimestamp(timestamp) if timestamp is not None else datetime.now()
