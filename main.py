@@ -251,7 +251,7 @@ def send_verification_email(email, verification_link, first_name, uid):
     
     # Create message
     msg = Message(
-        sender="hello@demomailtrap.com",
+        sender="support@bankstatementconverter.online",
         subject="Verify Your Bank Statement Converter Account",
         recipients=[email],
         html=html_content
