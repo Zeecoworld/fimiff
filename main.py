@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, session, url_for,request, flash, jsonify,Response
+from flask import Flask, render_template, redirect, session, url_for,request, flash, jsonify,Response,current_app
 from werkzeug.security import generate_password_hash,check_password_hash
 from werkzeug.utils import secure_filename
 import secrets
@@ -266,7 +266,7 @@ def send_verification_email(email, verification_link, first_name, uid):
         html=html_content
     )
     
-    Thread(target=send_async_email, args=(app._get_current_object(), msg)).start()
+    Thread(target=send_async_email, args=(current_app._get_current_object(), msg)).start()
     return True  
 
 def add_days_to_timestamp(timestamp=None, days=30):
