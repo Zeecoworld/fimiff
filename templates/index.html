@@ -244,90 +244,113 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleFileSelect(e) {
-        const file = fileInput.files[0];
-        if (!file) return;
+    const file = fileInput.files[0];
+    if (!file) return;
 
-        // Check if conversions are disabled
-        const ctaButton = document.querySelector('.cta-button');
-        if (ctaButton.classList.contains('disabled')) {
-            alert('You have reached your daily conversion limit. Please wait for the reset or upgrade your plan.');
-            uploadForm.reset();
-            return;
+    // Check if conversions are disabled
+    const ctaButton = document.querySelector('.cta-button');
+    if (ctaButton.classList.contains('disabled')) {
+        alert('You have reached your daily conversion limit. Please wait for the reset or upgrade your plan.');
+        uploadForm.reset();
+        return;
+    }
+
+    fileNameSpan.textContent = file.name;
+    progress.style.width = '0%';
+    progress.parentElement.style.display = 'block';
+
+    // Create FormData for the file
+    const formData = new FormData();
+    formData.append('pdf_file', file);
+
+    // Simulate upload progress
+    let progressValue = 0;
+    const progressInterval = setInterval(() => {
+        progressValue += 10;
+        if (progressValue <= 90) {
+            progress.style.width = progressValue + '%';
         }
+    }, 200);
 
-        fileNameSpan.textContent = file.name;
-        progress.style.width = '0%';
-        progress.parentElement.style.display = 'block';
-
-        // Create FormData for the file
-        const formData = new FormData();
-        formData.append('pdf_file', file);
+    // Send the file to the conversion endpoint
+    fetch('/convert', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        clearInterval(progressInterval);
+        progress.style.width = '100%';
         
-        // Get CSRF token from the form
-        const csrfToken = document.querySelector('input[name="csrf_token"]').value;
-        formData.append('csrf_token', csrfToken);
-
-        // Simulate upload progress
-        let progressValue = 0;
-        const progressInterval = setInterval(() => {
-            progressValue += 10;
-            if (progressValue <= 90) {
-                progress.style.width = progressValue + '%';
-            }
-        }, 200);
-
-        // Send the file to the conversion endpoint
-        fetch('/convert', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': csrfToken  // Include CSRF token in header
-            }
-        })
-        .then(response => {
-            clearInterval(progressInterval);
-            progress.style.width = '100%';
-            
-            if (!response.ok) {
-                return response.json().then(error => {
-                    throw new Error(error.error || 'Conversion failed');
-                });
-            }
+        if (!response.ok) {
+            // Try to parse error message
+            return response.json().then(error => {
+                throw new Error(error.error || 'Conversion failed');
+            }).catch(() => {
+                throw new Error('Conversion failed');
+            });
+        }
+        
+        // Check if response is a file (blob) or JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/csv')) {
+            // Return blob for CSV file
+            return response.blob();
+        } else {
+            // Return JSON for error handling
             return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Start the download
-                const downloadUrl = data.download_url;
-                const link = document.createElement('a');
-                link.href = downloadUrl;
-                link.download = 'extracted_tables.csv';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                // Show success message
-                alert('Conversion successful! Your file is downloading.');
-                
-                // Reset the form
-                uploadForm.reset();
-                fileNameSpan.textContent = 'No file selected';
-                
-                // Reload page to update conversion count
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            }
-        })
-        .catch(error => {
-            clearInterval(progressInterval);
-            alert('Error: ' + error.message);
+        }
+    })
+    .then(data => {
+        if (data instanceof Blob) {
+            // Handle file download
+            const url = window.URL.createObjectURL(data);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'converted_bank_statement.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            // Show success message
+            alert('Conversion successful! Your file is downloading.');
+            
+            // Reset the form
             uploadForm.reset();
             fileNameSpan.textContent = 'No file selected';
-            progress.parentElement.style.display = 'none';
-            progress.style.width = '0%';
-        });
-    }
+            
+            // Reload page to update conversion count
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else if (data.success) {
+            // Old JSON response format (if you still have it)
+            const downloadUrl = data.download_url;
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = 'extracted_tables.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert('Conversion successful! Your file is downloading.');
+            uploadForm.reset();
+            fileNameSpan.textContent = 'No file selected';
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+    })
+    .catch(error => {
+        clearInterval(progressInterval);
+        alert('Error: ' + error.message);
+        uploadForm.reset();
+        fileNameSpan.textContent = 'No file selected';
+        progress.parentElement.style.display = 'none';
+        progress.style.width = '0%';
+    });
+}
 });
 </script>
 {% endblock %}
