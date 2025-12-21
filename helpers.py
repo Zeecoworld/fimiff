@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from google.cloud import firestore
 from google.oauth2 import service_account
 import pdfplumber
+import io
 from io import BytesIO
 import os
 
