@@ -288,10 +288,10 @@ def test_endpoint():
 def home():
     user_conversions = get_user_conversions()
     
-    # Pass the data to the template
     return render_template('index.html', 
                          remaining_conversions=user_conversions.get('remaining_conversions'),
-                         conversions_reset_time=user_conversions.get('conversions_reset_time'))
+                         conversions_reset_time=user_conversions.get('conversions_reset_time'),
+                         is_authenticated='user_id' in session)
 
 
 @app.route('/convert', methods=['POST'])
