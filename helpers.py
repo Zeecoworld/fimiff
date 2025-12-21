@@ -205,9 +205,7 @@ def validate_and_process_pdf(file):
         return False, "Please upload a valid PDF file", None
     
     try:
-        # Create a BytesIO object to store the file content
-        file_content = BytesIO()
-        file.save(file_content)
+        file_content = BytesIO(file.read())
         file_content.seek(0)
         
         # Process the PDF using pdfplumber
@@ -252,22 +250,30 @@ def validate_and_process_pdf(file):
                                 continue
                             # Ensure row has the same length as headers
                             if len(row) < len(headers):
-                                row.extend([""] * (len(headers) - len(headers)))
+                                row.extend([""] * (len(headers) - len(row)))
                             elif len(row) > len(headers):
                                 row = row[:len(headers)]
                             all_rows.append(row)
             
             # Create a BytesIO object for the CSV output
             csv_output = BytesIO()
-            writer = csv.writer(csv_output)
+            # Use text mode wrapper for CSV writer
+            text_wrapper = io.TextIOWrapper(csv_output, encoding='utf-8', newline='')
+            writer = csv.writer(text_wrapper)
             
             # Write the merged data to CSV
             if headers:
                 writer.writerow(headers)
             writer.writerows(all_rows)
             
+            # Flush the text wrapper to ensure all data is written
+            text_wrapper.flush()
+            # Detach the wrapper so we can use the BytesIO object
+            text_wrapper.detach()
+            
             csv_output.seek(0)
             return True, "PDF processed successfully", csv_output
     
     except Exception as e:
+        print(f"PDF processing error: {str(e)}")
         return False, f"Error processing PDF: {str(e)}", None
