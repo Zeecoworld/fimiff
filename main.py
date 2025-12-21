@@ -295,31 +295,29 @@ def home():
 
 
 @app.route('/convert', methods=['POST'])
-@require_auth
-def convert_file():
-    if 'user_id' not in session:
-        return jsonify({'error': 'Please login to use this feature'}), 401
-    
+@csrf.exempt 
+def convert_file(): 
     try:
-        # Get user data from Firestore
-        user_ref = db.collection('users').document(session['user_id'])
-        user_doc = user_ref.get()
-        
-        if not user_doc.exists:
-            return jsonify({'error': 'User not found'}), 404
-        
-        user_data = user_doc.to_dict()
-        
-        # Check if email is verified
-        if not user_data.get('emailVerified', False):
-            return jsonify({
-                'error': 'Please verify your email address before using this feature. Check your inbox for the verification link.'
-            }), 403
-        
-        # Check if account is active
-        if not user_data.get('active', False):
-            return jsonify({'error': 'Your account is not active. Please contact support.'}), 403
+        # Check if user is authenticated
+        if 'user_id' in session:
+            # Get user data from Firestore
+            user_ref = db.collection('users').document(session['user_id'])
+            user_doc = user_ref.get()
             
+            if not user_doc.exists:
+                return jsonify({'error': 'User not found'}), 404
+            
+            user_data = user_doc.to_dict()
+            
+            # Check if email is verified
+            if not user_data.get('emailVerified', False):
+                return jsonify({
+                    'error': 'Please verify your email address before using this feature. Check your inbox for the verification link.'
+                }), 403
+            
+            # Check if account is active
+            if not user_data.get('active', False):
+                return jsonify({'error': 'Your account is not active. Please contact support.'}), 403
     except Exception as e:
         return jsonify({'error': 'Error verifying user status'}), 500
     
@@ -339,13 +337,11 @@ def convert_file():
     # Save the file
     file.save(filepath)
     
-    # Process the PDF
     try:
         is_valid, message, processed_file = validate_and_process_pdf(filepath)
         if not is_valid:
             return jsonify({'error': message}), 400
         
-        # Update conversion tracking
         user_conversions = get_user_conversions()
         
         # Check if user has conversions remaining
@@ -354,12 +350,20 @@ def convert_file():
                 'error': 'You have reached your conversion limit. Please upgrade your plan or wait for reset.'
             }), 403
         
-        if datetime.now() >= user_conversions['conversions_reset_time']:
-            user_conversions['remaining_conversions'] = 1
+        # Check if reset time has passed
+        if datetime.now().timestamp() >= user_conversions['conversions_reset_time']:
+            # Reset conversions based on user type
+            if 'user_id' in session:
+                user_conversions['remaining_conversions'] = 1  # Registered free users
+                user_conversions['conversions_reset_time'] = add_days_to_timestamp(
+                    datetime.now().timestamp(), 30
+                )
+            else:
+                user_conversions['remaining_conversions'] = 1  # Anonymous users
+                user_conversions['conversions_reset_time'] = add_days_to_timestamp(
+                    datetime.now().timestamp(), 1  
+                )
             user_conversions['conversions_count'] = 0
-            user_conversions['conversions_reset_time'] = add_days_to_timestamp(
-                datetime.now().timestamp(), 30
-            )
         
         user_conversions['remaining_conversions'] -= 1
         user_conversions['conversions_count'] += 1
