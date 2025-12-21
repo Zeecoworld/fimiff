@@ -184,19 +184,34 @@ def pluralize(value):
 @app.template_filter()
 def time_diff(dt):
     if dt is None:
-        return "unknown"  
-    now = datetime.now(app.config['TIMEZONE'])
+        return "unknown"
+    
+    if isinstance(dt, (int, float)):
+        dt = datetime.fromtimestamp(dt)
+    
+    now = datetime.now()
     diff = dt - now
-    # Handle negative differences (when reset time has passed)
+    
     if diff.total_seconds() <= 0:
-        return "Time has passed"
-    hours = diff.seconds // 3600
-    minutes = (diff.seconds // 60) % 60
-    # Only show hours if greater than 0
-    time_str = f"{minutes} minutes"
-    if hours > 0:
-        time_str = f"{hours} hours and {minutes} minutes"
-    return time_str
+        return "now (please refresh)"
+    
+    total_seconds = int(diff.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    
+    # Format the time string
+    if hours > 24:
+        days = hours // 24
+        remaining_hours = hours % 24
+        if remaining_hours > 0:
+            return f"{days} day{'s' if days != 1 else ''} and {remaining_hours} hour{'s' if remaining_hours != 1 else ''}"
+        return f"{days} day{'s' if days != 1 else ''}"
+    elif hours > 0:
+        if minutes > 0:
+            return f"{hours} hour{'s' if hours != 1 else ''} and {minutes} minute{'s' if minutes != 1 else ''}"
+        return f"{hours} hour{'s' if hours != 1 else ''}"
+    else:
+        return f"{minutes} minute{'s' if minutes != 1 else ''}"
 
 
 def send_verification_email(email, verification_link, first_name, uid):
