@@ -295,8 +295,8 @@ def home():
 
 
 @app.route('/convert', methods=['POST'])
-@csrf.exempt 
-def convert_file(): 
+@csrf.exempt  # Exempt from CSRF for easier API access
+def convert_file():
     try:
         # Check if user is authenticated
         if 'user_id' in session:
@@ -321,7 +321,6 @@ def convert_file():
     except Exception as e:
         return jsonify({'error': 'Error verifying user status'}), 500
     
-    # Get the file
     file = request.files.get('pdf_file')
     if not file:
         return jsonify({'error': 'No file provided'}), 400
@@ -330,21 +329,10 @@ def convert_file():
     if not file.filename.lower().endswith('.pdf'):
         return jsonify({'error': 'Please upload a PDF file'}), 400
     
-    # Secure the filename
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    
-    # Save the file
-    file.save(filepath)
-    
+  
     try:
-        is_valid, message, processed_file = validate_and_process_pdf(filepath)
-        if not is_valid:
-            return jsonify({'error': message}), 400
-        
         user_conversions = get_user_conversions()
         
-        # Check if user has conversions remaining
         if user_conversions['remaining_conversions'] <= 0:
             return jsonify({
                 'error': 'You have reached your conversion limit. Please upgrade your plan or wait for reset.'
@@ -361,19 +349,31 @@ def convert_file():
             else:
                 user_conversions['remaining_conversions'] = 1  # Anonymous users
                 user_conversions['conversions_reset_time'] = add_days_to_timestamp(
-                    datetime.now().timestamp(), 1  
+                    datetime.now().timestamp(), 1  # Reset in 1 day for anonymous
                 )
             user_conversions['conversions_count'] = 0
         
+        # Validate and process the PDF (pass file object directly)
+        is_valid, message, processed_file = validate_and_process_pdf(file)
+        if not is_valid:
+            return jsonify({'error': message}), 400
+        
+        # Update conversion count
         user_conversions['remaining_conversions'] -= 1
         user_conversions['conversions_count'] += 1
         update_user_conversions(user_conversions)
         
-        return jsonify({
-            'success': True,
-            'download_url': '/download/' + filename
-        })
+        # Return the CSV file directly for download
+        from flask import send_file
+        return send_file(
+            processed_file,
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name='converted_bank_statement.csv'
+        )
+        
     except Exception as e:
+        print(f"Conversion error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 
