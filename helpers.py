@@ -1,4 +1,4 @@
-from flask import session
+from flask import session, request
 from datetime import datetime, timedelta
 from google.cloud import firestore
 from google.oauth2 import service_account
@@ -36,8 +36,78 @@ def add_days_to_timestamp(timestamp=None, days=30):
     return future_dt.timestamp()
 
 
+def get_client_ip():
+    """Get the client's IP address, considering proxies"""
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    return request.remote_addr
+
+
+def get_anonymous_conversions():
+    """Get conversion data for anonymous users based on IP"""
+    ip_address = get_client_ip()
+    
+    try:
+        # Check if IP exists in anonymous_conversions collection
+        ip_ref = db.collection('anonymous_conversions').document(ip_address)
+        ip_doc = ip_ref.get()
+        
+        if ip_doc.exists:
+            ip_data = ip_doc.to_dict()
+            reset_time = ip_data.get('conversions_reset_time', datetime.now().timestamp())
+            
+            # Check if 24 hours have passed
+            if datetime.now().timestamp() >= reset_time:
+                # Reset conversions
+                ip_data = {
+                    'remaining_conversions': 1,
+                    'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 1),  # Reset in 1 day
+                    'conversions_count': 0,
+                    'last_updated': firestore.SERVER_TIMESTAMP
+                }
+                ip_ref.set(ip_data)
+            
+            return ip_data
+        else:
+            # Create new entry for this IP
+            ip_data = {
+                'remaining_conversions': 1,
+                'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 1),  # Reset in 1 day
+                'conversions_count': 0,
+                'created_at': firestore.SERVER_TIMESTAMP,
+                'last_updated': firestore.SERVER_TIMESTAMP
+            }
+            ip_ref.set(ip_data)
+            return ip_data
+            
+    except Exception as e:
+        print(f"Error getting anonymous conversions: {str(e)}")
+        return {
+            'remaining_conversions': 0,
+            'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 1),
+            'conversions_count': 0
+        }
+
+
+def update_anonymous_conversions(conversions_data):
+    """Update anonymous user's conversion data"""
+    ip_address = get_client_ip()
+    
+    try:
+        ip_ref = db.collection('anonymous_conversions').document(ip_address)
+        ip_ref.set({
+            'remaining_conversions': conversions_data['remaining_conversions'],
+            'conversions_reset_time': conversions_data['conversions_reset_time'],
+            'conversions_count': conversions_data['conversions_count'],
+            'last_updated': firestore.SERVER_TIMESTAMP
+        }, merge=True)
+    except Exception as e:
+        print(f"Error updating anonymous conversions: {str(e)}")
+
+
 def get_user_conversions():
     """Retrieve user's conversion data from database."""
+    # Check if user is logged in
     if 'user_id' in session:
         user_ref = db.collection('users').document(session['user_id'])
         user_data = user_ref.get().to_dict()
@@ -77,12 +147,10 @@ def get_user_conversions():
             'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
             'conversions_count': 0
         })
-    
-    return {
-        'remaining_conversions': 1,
-        'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
-        'conversions_count': 0
-    }
+    else:
+        # For anonymous users, use IP-based tracking
+        return get_anonymous_conversions()
+
 
 def update_user_conversions(conversions):
     """Update user's conversion data in database and session."""
@@ -95,7 +163,11 @@ def update_user_conversions(conversions):
                 'conversions_count': conversions['conversions_count']
             }
         }, merge=True)
-    session['conversions'] = conversions
+        session['conversions'] = conversions
+    else:
+        # For anonymous users, update IP-based tracking
+        update_anonymous_conversions(conversions)
+
 
 def get_conversion_context():
     """Prepare conversion data for template rendering."""
@@ -114,7 +186,7 @@ def get_conversion_context():
         # Fallback values matching database structure
         return {
             'remaining_conversions': 1,
-            'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 30),
+            'conversions_reset_time': add_days_to_timestamp(datetime.now().timestamp(), 1),
             'conversions_count': 0
         }
     
